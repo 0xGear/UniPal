@@ -1,5 +1,6 @@
 import { Component } from "react";
 import BlackCard from '../components/BlackCard.js'
+import Loading from '../components/Loading.js'
 import AssetInfoCard from "../components/AssetInfoCard.js"
 import { Token, CurrencyAmount, WETH9, currencyEquals } from '@uniswap/sdk-core'
 import { encodeSqrtRatioX96 } from '@uniswap/v3-sdk'
@@ -175,7 +176,7 @@ export default class GrabData extends Component {
     render() {
         if (this.state.loading) {
             return (
-                <div>loading</div>
+                <Loading/>
             )
         }
         let currentAsset = this.state.token0Str + " : " + parseFloat(this.state.currentAmount0).toFixed(4) + "\n" + this.state.token1Str + " : " + parseFloat(this.state.currentAmount1).toFixed(4)
