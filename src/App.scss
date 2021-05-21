@@ -1,0 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@200;900&family=Roboto:wght@100;400;700;900&display=swap');
+
+:root{
+    --primary-pink:#ED17A6;
+    --primary-purple:#C810E4;
+    --logo-font: 'Montserrat';
+    --logo-weight: 900;
+    --text-font: 'Roboto';
+    --text-weight: 700;
+    --h1-weight: 900;
+    --h2-weight: 900;
+    --secondary-color:#DDDDDD;
+    --medium-font: 2em;
+    --large-font:5em;
+    --small-font:1em;
+}
+
+.logo-text{
+    font-weight: var(--logo-weight);
+    font-family: var(--logo-font);
+}
