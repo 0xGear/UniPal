@@ -9,8 +9,6 @@ export default class HeaderAndSearch extends Component{
         this.tkn_id= (this.state.tkn_id)? "token ID":this.state.tkn_id
     }
 
-    
-
     render(){
         return(
             <div id="HS_container">

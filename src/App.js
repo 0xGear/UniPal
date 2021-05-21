@@ -9,29 +9,31 @@ export default class App extends Component {
     //this.data = React.createRef()
     this.state = {
       tokenId:null,
-      search:false
+      search:false,
     }
-    this.OnSearchClick = this.OnSearchClick.bind(this)
-    this.HandleChange = this.HandleChange.bind(this)
+    this.onSearchClick = this.onSearchClick.bind(this)
+    this.handleChange = this.handleChange.bind(this)
   }
 
-  OnSearchClick=async()=>{
+  onSearchClick=async()=>{
     //check valid toked id
-    if(this.CheckTokenValid(this.state.value)){
+    if(this.checkTokenValid(this.state.value)){
       // find events
       //this.setState({search:true})
       // set refresh
-      this.setState({tokenId:this.state.value})
+      this.setState({
+        tokenId:this.state.value,
+      })
     }
   }
 
-  HandleChange=(e)=>{
+  handleChange=(e)=>{
     this.setState({
       value:e.target.value
     })
   }
 
-  CheckTokenValid=(input)=>{
+  checkTokenValid=(input)=>{
     if(isNaN(input)){
       alert("hey! input valid token id plz")
       return false
@@ -47,11 +49,11 @@ export default class App extends Component {
         <div className="App">
           <NavBar/>
           <HeaderAndSearch 
-            handlechange={this.HandleChange}
-            onsearchclick={this.OnSearchClick} 
+            handlechange={this.handleChange}
+            onsearchclick={this.onSearchClick} 
             state={this.state}
           />
-          <GrabData state={this.state} tokenId={this.state.tokenId}/>
+          <GrabData state={this.state}/>
         </div>
       );
     }
@@ -60,8 +62,8 @@ export default class App extends Component {
         <div className="App">
           <NavBar/>
           <HeaderAndSearch 
-            handlechange={this.HandleChange}
-            onsearchclick={this.OnSearchClick} 
+            handlechange={this.handleChange}
+            onsearchclick={this.onSearchClick} 
             state={this.state}
           />
         </div>

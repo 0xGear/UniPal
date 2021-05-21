@@ -1,0 +1,33 @@
+@import '../App.scss';
+.blackcard{
+    font-family: var(--text-font);
+    border-radius: 20px;
+    background-color: black;
+    margin: 0;
+    padding: 1em;
+    width: 80%;
+    margin-right:auto;
+    margin-left:auto;
+    margin-top:.5em;
+    .title{
+        color:white;
+        font-weight: var(--h2-weight);
+        font-size: 1.3em;
+        margin-bottom: .5em;
+    }
+    .value{
+        color: white;
+        font-weight: var(--text-weight);
+        font-size: 1em;
+    }
+}
+
+@media only screen and (min-width:762px){
+    .blackcard{
+        display:none;
+        width:20% !important;
+        margin:0 !important;
+        margin-right:0 !important;
+        margin-left:0 !important;
+    }
+}

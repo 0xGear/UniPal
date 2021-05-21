@@ -1,0 +1,41 @@
+#data_container{
+    padding: 1em;
+    #black_card_container{
+        margin-top: 0em;
+        width:100%;
+    }
+}
+
+@media only screen and (min-width:762px){
+    #data_container{
+        padding: 2em 3em;
+        #black_card_container{
+            display: flex;
+            float:right;
+            flex-wrap:nowrap;
+            place-content:space-around;
+            text-align:center;
+            //grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
+            //place-content: space-around;
+            //flex-flow: nowrap !important;
+            //float:left;
+            //margin: 0em;
+            //padding: 0em;
+            //width:100%;
+        }
+    }
+}
+
+@media only screen and (min-width:1024px){
+    #data_container{
+        margin-top: 3em;
+        padding:3em 10em;
+    }
+}
+
+@media only screen and (min-width:1670px){
+    #data_container{
+        margin-top: 3em;
+        padding:3em 15em;
+    }
+}
