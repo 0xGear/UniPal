@@ -135,7 +135,6 @@ export default class GrabData extends Component {
             this.eventLog.push(_eventLog)
             return _singleCost
         }))
-        console.log(costs)
         let totalInput = 0
         costs.map((c)=>{
             totalInput = totalInput+parseFloat(c)
@@ -148,7 +147,6 @@ export default class GrabData extends Component {
 
     getInitCost = async()=>{
         let initEvent = this.eventLog[0]
-        console.log(this.eventLog.length)
         if(this.eventLog.length>1){
             for(let e in this.eventLog){
                 if(e.timestamp < initEvent.timestamp){
@@ -162,7 +160,11 @@ export default class GrabData extends Component {
             hisPriceEth0:initEvent.hisPriceEth0,
             hisPriceEth1:initEvent.hisPriceEth1,
         })
-        console.log(this.state)
+        // sort eventLog
+        this.eventLog.sort((a,b)=>{
+            if(a.timestamp > b.timestamp) return 1
+            if(a.timestamp < b.timestamp) return -1
+        })
     }
 
     getData = async (tokenId) => {
@@ -218,8 +220,8 @@ export default class GrabData extends Component {
         let initCurrentAmount1 = Number(parseFloat(this.state.initAmount1).toFixed(4)).toLocaleString()+" / "+ Number(parseFloat(this.state.currentAmount1).toFixed(4)).toLocaleString()
         let initCurrentPrice0 = Number(parseFloat(this.state.hisPriceUsd0).toFixed(4)).toLocaleString()+" / "+ Number(parseFloat(this.state.curPriceUsd0).toFixed(4)).toLocaleString()
         let initCurrentPrice1 = Number(parseFloat(this.state.hisPriceUsd1).toFixed(4)).toLocaleString()+" / "+ Number(parseFloat(this.state.curPriceUsd1).toFixed(4)).toLocaleString()
-        let amountVar0 = Number(((parseFloat(this.state.currentAmount0)-parseFloat(this.state.initAmount0)/parseFloat(this.state.initAmount0))).toFixed(4)).toLocaleString()+" %"
-        let amountVar1 = Number(((parseFloat(this.state.currentAmount1)-parseFloat(this.state.initAmount1)/parseFloat(this.state.initAmount1))).toFixed(4)).toLocaleString()+" %"
+        let amountVar0 = Number((((parseFloat(this.state.currentAmount0)-parseFloat(this.state.initAmount0))/parseFloat(this.state.initAmount0))).toFixed(4)).toLocaleString()+" %"
+        let amountVar1 = Number((((parseFloat(this.state.currentAmount1)-parseFloat(this.state.initAmount1))/parseFloat(this.state.initAmount1))).toFixed(4)).toLocaleString()+" %"
         let priceVar0 = ((parseFloat(this.state.curPriceUsd0)-parseFloat(this.state.hisPriceUsd0))/parseFloat(this.state.hisPriceUsd0)).toFixed(4)+" %"
         let priceVar1 = ((parseFloat(this.state.curPriceUsd1)-parseFloat(this.state.hisPriceUsd1))/parseFloat(this.state.hisPriceUsd1)).toFixed(4)+" %"
         return (
