@@ -2,6 +2,7 @@ import { Component } from "react";
 import BlackCard from '../components/BlackCard.js'
 import Loading from '../components/Loading.js'
 import AssetInfoCard from "../components/AssetInfoCard.js"
+import {getEventInfo, getSingleCost} from "./Funcs.js"
 import { Token, CurrencyAmount, WETH9, currencyEquals } from '@uniswap/sdk-core'
 import { encodeSqrtRatioX96 } from '@uniswap/v3-sdk'
 import nfpmAbi from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
@@ -28,8 +29,9 @@ export default class GrabData extends Component {
         this.uniFactory = new this.web3.eth.Contract(factoryAbi.abi, uniFactoryAddr);
     }
 
-    getTokenInfo = async (tokenId) => {
-        console.log("24", tokenId)
+
+
+    getTokenEventInfo = async (tokenId) => {
         let increase = this.nfpm.getPastEvents('IncreaseLiquidity', {
             filter: { tokenId: tokenId },
             fromBlock: 0,
@@ -148,8 +150,24 @@ export default class GrabData extends Component {
         console.log(this.state)
     }
 
+    getTotalCost= async(tokenId,posContract,web3)=>{
+        let[increaseLPEvent,decreaseLPEvent,collectEvent] = await getEventInfo(tokenId,posContract)
+        let inDeEvents=increaseLPEvent
+        //inDeEvents.concat(increaseLPEvent)
+        inDeEvents.concat(decreaseLPEvent)
+        console.log(inDeEvents)
+        let costs = 0
+        costs = await getSingleCost(tokenId,inDeEvents[0],web3,posContract)
+        //costs = await Promise.all(inDeEvents.map(async (e) => {
+	    //    let singleCost = await getSingleCost(tokenId,e,web3,posContract)
+        //    return singleCost
+        //}));
+        console.log(costs)
+    }
+
     getData = async (tokenId) => {
-        await this.getTokenInfo(tokenId)
+        this.getTotalCost(tokenId,this.nfpm,this.web3)
+        await this.getTokenEventInfo(tokenId)
         await this.getMarketInfo(tokenId)
         this.setLoading()
     }
@@ -180,12 +198,12 @@ export default class GrabData extends Component {
             )
         }
         let currentAsset = this.state.token0Str + " & " + this.state.token1Str
-        let poolValue = "$" +((parseFloat(this.state.currentAmount0)*this.state.curPriceUsd0)+(parseFloat(this.state.currentAmount1)*this.state.curPriceUsd1)).toFixed(4)
+        let poolValue = ((parseFloat(this.state.currentAmount0)*this.state.curPriceUsd0)+(parseFloat(this.state.currentAmount1)*this.state.curPriceUsd1)).toFixed(4)
         let initAssetAtInitPrice = ((parseFloat(this.state.initAmount0)*this.state.hisPriceUsd0)+(parseFloat(this.state.initAmount1)*this.state.hisPriceUsd1)).toFixed(4)
         let initAssetAtCurPrice = ((parseFloat(this.state.initAmount0)*this.state.curPriceUsd0)+(parseFloat(this.state.initAmount1)*this.state.curPriceUsd1)).toFixed(4)
         let curAssetAtCurPrice = ((parseFloat(this.state.currentAmount0)*this.state.curPriceUsd0)+(parseFloat(this.state.currentAmount1)*this.state.curPriceUsd1)).toFixed(4)
         let netgain_percentage = ((curAssetAtCurPrice-initAssetAtInitPrice)/initAssetAtInitPrice).toFixed(4)+" %"
-        let netgain = "$ "+(curAssetAtCurPrice-initAssetAtInitPrice).toFixed(4)
+        let netgain = (curAssetAtCurPrice-initAssetAtInitPrice).toFixed(4)
         let initCurrentAmount0 = Number(parseFloat(this.state.initAmount0).toFixed(4)).toLocaleString()+" / "+ Number(parseFloat(this.state.currentAmount0).toFixed(4)).toLocaleString()
         let initCurrentAmount1 = Number(parseFloat(this.state.initAmount1).toFixed(4)).toLocaleString()+" / "+ Number(parseFloat(this.state.currentAmount1).toFixed(4)).toLocaleString()
         let initCurrentPrice0 = Number(parseFloat(this.state.hisPriceUsd0).toFixed(4)).toLocaleString()+" / "+ Number(parseFloat(this.state.curPriceUsd0).toFixed(4)).toLocaleString()
@@ -203,18 +221,18 @@ export default class GrabData extends Component {
                         value={currentAsset} />
                     <BlackCard
                         title="Pool Value (USD)"
-                        value={poolValue} />
+                        value={"$ "+Number(poolValue).toLocaleString()} />
                     <BlackCard
                         title="Net Market Gain (w/o fee)"
-                        value={netgain} />
+                        value={"$ "+Number(netgain).toLocaleString()} />
                 </div>
                 <AssetInfoCard
                     title = "LP Gain / Asset Info (USD)"
-                    r0c0="initial asset at initial price"
+                    r0c0="initial asset @ initial price"
                     r0c1={"$ "+Number(initAssetAtInitPrice).toLocaleString()}
-                    r1c0="initial assets at current price"
+                    r1c0="initial assets @ current price"
                     r1c1={"$ "+Number(initAssetAtCurPrice).toLocaleString()}
-                    r2c0="current asset at current price"
+                    r2c0="current asset @ current price"
                     r2c1={"$ "+Number(curAssetAtCurPrice).toLocaleString()}
                     r3c0="Gain from market price"
                     r3c1={netgain+" ("+netgain_percentage+")"}

@@ -19,6 +19,8 @@
         margin-top:.5em;
         align-items:end;
         display:grid;
+        font-size:1em;
+        font-weight:700;
         grid-template-columns:60% auto;
         .col1, .col2{
             margin-top:.5em;
@@ -40,6 +42,7 @@
 
 @media only screen and (min-width:762px){
     .assetinfocard{ 
+
         .table34{
             display:none !important;
         }
