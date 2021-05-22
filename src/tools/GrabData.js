@@ -141,7 +141,7 @@ export default class GrabData extends Component {
             totalInput = totalInput+parseFloat(c)
         })
         this.setState({
-            totalInput:costs,
+            totalInput:totalInput,
             eventLog:this.eventLog
         })
     }
@@ -212,8 +212,8 @@ export default class GrabData extends Component {
         let initAssetAtInitPrice = ((parseFloat(this.state.initAmount0)*this.state.hisPriceUsd0)+(parseFloat(this.state.initAmount1)*this.state.hisPriceUsd1)).toFixed(4)
         let initAssetAtCurPrice = ((parseFloat(this.state.initAmount0)*this.state.curPriceUsd0)+(parseFloat(this.state.initAmount1)*this.state.curPriceUsd1)).toFixed(4)
         let curAssetAtCurPrice = ((parseFloat(this.state.currentAmount0)*this.state.curPriceUsd0)+(parseFloat(this.state.currentAmount1)*this.state.curPriceUsd1)).toFixed(4)
-        let netgain_percentage = ((curAssetAtCurPrice-initAssetAtInitPrice)/initAssetAtInitPrice).toFixed(4)+" %"
-        let netgain = (curAssetAtCurPrice-initAssetAtInitPrice).toFixed(4)
+        let netgain_percentage = ((curAssetAtCurPrice-this.state.totalInput)/this.state.totalInput).toFixed(4)+" %"
+        let netgain = (curAssetAtCurPrice-this.state.totalInput).toFixed(4)
         let initCurrentAmount0 = Number(parseFloat(this.state.initAmount0).toFixed(4)).toLocaleString()+" / "+ Number(parseFloat(this.state.currentAmount0).toFixed(4)).toLocaleString()
         let initCurrentAmount1 = Number(parseFloat(this.state.initAmount1).toFixed(4)).toLocaleString()+" / "+ Number(parseFloat(this.state.currentAmount1).toFixed(4)).toLocaleString()
         let initCurrentPrice0 = Number(parseFloat(this.state.hisPriceUsd0).toFixed(4)).toLocaleString()+" / "+ Number(parseFloat(this.state.curPriceUsd0).toFixed(4)).toLocaleString()
