@@ -1,3 +1,4 @@
+import { Token, CurrencyAmount, WETH9, currencyEquals } from '@uniswap/sdk-core'
 export async function getEventInfo(tokenId,posContract){
     let _increaseLPEvent = posContract.getPastEvents('IncreaseLiquidity', {
         filter: { tokenId: [tokenId] },
@@ -21,84 +22,33 @@ export async function getEventInfo(tokenId,posContract){
     return [increaseLPEvent,decreaseLPEvent,collectEvent]
 }
 
-export async function getSingleCost(tokenId,event,web3,posContract){
-    console.log("getSingleCost")
-    let block = await web3.eth.getBlock(event.blockNumber)
-    let timestamp = block.timestamp
-    let date = new Date(timestamp * 1000).getDate()
-    let month = new Date(timestamp * 1000).getMonth() + 1
-    let year = new Date(timestamp * 1000).getFullYear()
+export async function getSingleHisCost(tokenId,tokenInfo,event,web3,posContract,UNI_TOKEN0,UNI_TOKEN1){
+    let date = new Date(event.timestamp * 1000).getDate()
+    let month = new Date(event.timestamp * 1000).getMonth() + 1
+    let year = new Date(event.timestamp * 1000).getFullYear()
     // todo :repeated
-    let tokenInfo = await posContract.methods.positions(parseInt(tokenId))
-            .call()
-            .catch((e) => {
-                alert('invalid token ID')
-                window.location.reload(false)
-            })
-    let fetchCoin0 = fetch(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${tokenInfo.token0}`)
+    let _price0 = fetch(`https://api.coingecko.com/api/v3/coins/${tokenInfo.id0}/history?date=${date}-${month}-${year}`)
     .then((response) => response.json())
     .then((data) => {
-        return data['id']
+        event.hisPriceUsd0 = data['market_data']['current_price']['usd']
+        event.hisPriceEth0 = data['market_data']['current_price']['eth']
+        return data['market_data']['current_price']['usd']
     })
-    .then(async(id)=>{
-       let _price = await fetch(`https://api.coingecko.com/api/v3/coins/${id}/history?date=${date}-${month}-${year}`)
-        .then((response) => response.json())
-        .then((data) => {
-                return data['market_data']['current_price']['usd']
-            })
-        return _price
-    })
-   
-   let fetchCoin1 = fetch(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${tokenInfo.token1}`)
+    let _price1 = fetch(`https://api.coingecko.com/api/v3/coins/${tokenInfo.id1}/history?date=${date}-${month}-${year}`)
     .then((response) => response.json())
     .then((data) => {
-        return data['id']
+        event.hisPriceUsd1 = data['market_data']['current_price']['usd']
+        event.hisPriceEth1 = data['market_data']['current_price']['eth']
+        return data['market_data']['current_price']['usd']
     })
-    .then(async(id)=>{
-        let _price = await fetch(`https://api.coingecko.com/api/v3/coins/${id}/history?date=${date}-${month}-${year}`)
-            .then((response) => response.json())
-            .then((data) => {
-                return data['market_data']['current_price']['usd']
-            })
-        return _price
-    })
-
-    let [price0,price1] = await Promise.all([fetchCoin0,fetchCoin1])
-    let mul = (event.event=="IncreaseLiquidity")? 1:-1
-    console.log("amount0",event.returnValues.amount0)
-    console.log("amount1",event.returnValues.amount1)
-    return ((parseFloat(price0)*parseFloat(event.returnValues.amount0)+parseFloat(price0)*parseFloat(event.returnValues.amount0))*mul)
+    let [price0,price1] = await Promise.all([_price0,_price1])
+    let mul = (event.event==="IncreaseLiquidity")? 1:-1
+    let _amount0 = (CurrencyAmount.fromRawAmount(UNI_TOKEN0, event.returnValues.amount0).toFixed())
+    let _amount1 = (CurrencyAmount.fromRawAmount(UNI_TOKEN1, event.returnValues.amount1).toFixed())
+    let investment = ((parseFloat(price0)*parseFloat(_amount0)+parseFloat(price1)*parseFloat(_amount1))*parseInt(mul))
+    event.date = date
+    event.month = month
+    event.year = year
+    event.investment = investment
+    return [investment,event]
 }
-/*
-function lineup(events) {
-    return new Promise(async (resolve, reject) => {
-        for (let e in events) {
-            let blocknumber = events[e]['blockNumber']
-            let timestamp
-            await web3.eth.getBlock(blocknumber)
-                .then((block) => {
-                    timestamp = block.timestamp
-                    console.log("blocknumber", blocknumber)
-                    console.log("timestamp", timestamp)
-                    if (timemap.has(timestamp)) {
-                        let list = timemap.get(timestamp)
-                        list.push(events[e])
-                        timemap.set(timestamp, list)
-                    }
-                    else
-                        //console.log(events[e])
-                        timemap.set(timestamp, [events[e]])
-                })
-                .catch((err) => console.log(err))
-        }
-        resolve()
-    })
-}
-
-function outputmap(map) {
-    for (let [key, value] of map) {
-        console.log(key + ":" + value)
-    }
-}
-
-*/

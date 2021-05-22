@@ -2,7 +2,7 @@ import { Component } from "react";
 import BlackCard from '../components/BlackCard.js'
 import Loading from '../components/Loading.js'
 import AssetInfoCard from "../components/AssetInfoCard.js"
-import {getEventInfo, getSingleCost} from "./Funcs.js"
+import {getEventInfo, getSingleHisCost} from "./Funcs.js"
 import { Token, CurrencyAmount, WETH9, currencyEquals } from '@uniswap/sdk-core'
 import { encodeSqrtRatioX96 } from '@uniswap/v3-sdk'
 import nfpmAbi from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
@@ -29,9 +29,54 @@ export default class GrabData extends Component {
         this.uniFactory = new this.web3.eth.Contract(factoryAbi.abi, uniFactoryAddr);
     }
 
+    getTokenInfo = async(tokenId)=>{
+        // get token address of (token0,token1)
+        // important info in this.tokenInfo (liquidity,token0,token1,tickLower,tickUpper,fee)
+        this.tokenInfo = await this.nfpm.methods.positions(parseInt(tokenId))
+            .call()
+            .catch((e) => {
+                alert('invalid token ID')
+                window.location.reload(false)
+            })
+        await this.setState({
+            tokenId: tokenId,
+            liquidity: this.tokenInfo.liquidity,
+            token0: this.tokenInfo.token0,
+            token1: this.tokenInfo.token1,
+            tickLower: this.tokenInfo.tickLower,
+            tickUpper: this.tokenInfo.tickUpper,
+            fee: this.tokenInfo.fee
+        })
+        let poolAddr = await this.uniFactory.methods.getPool(this.state.token0, this.state.token1, this.state.fee).call();
+        let pool = new this.web3.eth.Contract(poolAbi.abi, poolAddr);
+        let poolSlot0 = await pool.methods.slot0().call();
+        let poolLiquidity = await pool.methods.liquidity().call();
+        let token0 = new this.web3.eth.Contract(erc20Abi, this.state.token0);
+        let token1 = new this.web3.eth.Contract(erc20Abi, this.state.token1);
+        this.UNI_TOKEN0 = new Token(1, this.state.token0, parseInt(await token0.methods.decimals().call()), await token0.methods.symbol().call(), await token0.methods.name().call());
+        this.UNI_TOKEN1 = new Token(1, this.state.token1, parseInt(await token1.methods.decimals().call()), await token1.methods.symbol().call(), await token1.methods.name().call());
+        this.UNI_POOL = new Pool(
+            this.UNI_TOKEN0, this.UNI_TOKEN1, parseInt(this.state.fee),
+            TickMath.getSqrtRatioAtTick(parseInt(poolSlot0.tick)),
+            poolLiquidity,
+            parseInt(poolSlot0.tick),
+            []
+        );
+        this.UNI_POSITION = new Position({
+            pool: this.UNI_POOL,
+            liquidity: parseInt(this.state.liquidity),
+            tickLower: parseInt(this.state.tickLower),
+            tickUpper: parseInt(this.state.tickUpper)
+        });
+        this.setState({
+            currentAmount0: this.UNI_POSITION.amount0.toFixed(),
+            currentAmount1: this.UNI_POSITION.amount1.toFixed(),
+            token0Str: this.UNI_POSITION.amount0.currency.symbol,
+            token1Str: this.UNI_POSITION.amount1.currency.symbol
+        })
+    }
 
-
-    getTokenEventInfo = async (tokenId) => {
+    getInitInfo = async (tokenId) => {
         let increase = this.nfpm.getPastEvents('IncreaseLiquidity', {
             filter: { tokenId: tokenId },
             fromBlock: 0,
@@ -44,63 +89,39 @@ export default class GrabData extends Component {
                 window.location.reload(false)
             })
         this.increaseEvents = await increase
-        console.log(this.increaseEvents)
         //set state with init liquidity amount0 amount1
         let block = await this.web3.eth.getBlock(this.increaseEvents[0].blockNumber)
         this.setState({
-            tokenId: tokenId,
             timeStamp: block.timestamp,
             initLiquidity: this.increaseEvents[0].returnValues.liquidity,
-            initAmount0: this.increaseEvents[0].returnValues.amount0,
-            initAmount1: this.increaseEvents[0].returnValues.amount1,
-            liquidity: this.tokenInfo.liquidity,
-            token0: this.tokenInfo.token0,
-            token1: this.tokenInfo.token1,
-            tickLower: this.tokenInfo.tickLower,
-            tickUpper: this.tokenInfo.tickUpper,
-            fee: this.tokenInfo.fee
-        })
-        console.log(this.state)
-
-        let poolAddr = await this.uniFactory.methods.getPool(this.state.token0, this.state.token1, this.state.fee).call();
-        let pool = new this.web3.eth.Contract(poolAbi.abi, poolAddr);
-        let poolSlot0 = await pool.methods.slot0().call();
-        let poolLiquidity = await pool.methods.liquidity().call();
-        let token0 = new this.web3.eth.Contract(erc20Abi, this.state.token0);
-        let token1 = new this.web3.eth.Contract(erc20Abi, this.state.token1);
-        const UNI_TOKEN0 = new Token(1, this.state.token0, parseInt(await token0.methods.decimals().call()), await token0.methods.symbol().call(), await token0.methods.name().call());
-        const UNI_TOKEN1 = new Token(1, this.state.token1, parseInt(await token1.methods.decimals().call()), await token1.methods.symbol().call(), await token1.methods.name().call());
-        const UNI_POOL = new Pool(
-            UNI_TOKEN0, UNI_TOKEN1, parseInt(this.state.fee),
-            TickMath.getSqrtRatioAtTick(parseInt(poolSlot0.tick)),
-            poolLiquidity,
-            parseInt(poolSlot0.tick),
-            []
-        );
-        console.log(this.state)
-        console.log(parseInt(this.state.tickLower))
-        console.log(parseInt(this.state.tickUpper))
-
-        const UNI_POSITION = new Position({
-            pool: UNI_POOL,
-            liquidity: parseInt(this.state.liquidity),
-            tickLower: parseInt(this.state.tickLower),
-            tickUpper: parseInt(this.state.tickUpper)
-        });
-        console.log(CurrencyAmount.fromRawAmount(UNI_TOKEN0, this.state.initAmount0).toFixed())
-        console.log(CurrencyAmount.fromRawAmount(UNI_TOKEN1, this.state.initAmount1).toFixed())
-        this.setState({
-            initAmount0: CurrencyAmount.fromRawAmount(UNI_TOKEN0, this.state.initAmount0).toFixed(),
-            initAmount1: CurrencyAmount.fromRawAmount(UNI_TOKEN1, this.state.initAmount1).toFixed(),
-            currentAmount0: UNI_POSITION.amount0.toFixed(),
-            currentAmount1: UNI_POSITION.amount1.toFixed(),
-            token0Str: UNI_POSITION.amount0.currency.symbol,
-            token1Str: UNI_POSITION.amount1.currency.symbol
+            initAmount0: CurrencyAmount.fromRawAmount(this.UNI_TOKEN0, this.increaseEvents[0].returnValues.amount0).toFixed(),
+            initAmount1: CurrencyAmount.fromRawAmount(this.UNI_TOKEN1, this.increaseEvents[0].returnValues.amount1).toFixed(),
         })
 
-        console.log(this.state)
     }
 
+    getCurCost = async()=>{
+        const fetchCoin0 = await fetch(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${this.state.token0}`)
+            .then((response) => response.json())
+            .then((data) => {
+                this.setState({
+                    id0: data['id'],
+                    curPriceUsd0: data['market_data']['current_price']['usd'],
+                    curPriceEth0: data['market_data']['current_price']['eth']
+                })
+            })
+        const fetchCoin1 = await fetch(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${this.state.token1}`)
+            .then((response) => response.json())
+            .then((data) => {
+                this.setState({
+                    id1: data['id'],
+                    curPriceUsd1: data['market_data']['current_price']['usd'],
+                    curPriceEth1: data['market_data']['current_price']['eth']
+                })
+            })
+    }
+
+    
     getMarketInfo = async (tokenId) => {
         let date = new Date(this.state.timeStamp * 1000).getDate()
         let month = new Date(this.state.timeStamp * 1000).getMonth() + 1
@@ -150,25 +171,58 @@ export default class GrabData extends Component {
         console.log(this.state)
     }
 
-    getTotalCost= async(tokenId,posContract,web3)=>{
+    getHisCost= async(tokenId,posContract,web3,UNI_TOKEN0,UNI_TOKEN1)=>{
         let[increaseLPEvent,decreaseLPEvent,collectEvent] = await getEventInfo(tokenId,posContract)
-        let inDeEvents=increaseLPEvent
-        //inDeEvents.concat(increaseLPEvent)
-        inDeEvents.concat(decreaseLPEvent)
-        console.log(inDeEvents)
-        let costs = 0
-        costs = await getSingleCost(tokenId,inDeEvents[0],web3,posContract)
-        //costs = await Promise.all(inDeEvents.map(async (e) => {
-	    //    let singleCost = await getSingleCost(tokenId,e,web3,posContract)
-        //    return singleCost
-        //}));
+        let inDeEvents=[]
+        this.eventLog = []
+        inDeEvents = inDeEvents.concat(increaseLPEvent,decreaseLPEvent)
+        let costs = await Promise.all(inDeEvents.map(async (e) => {
+            let block = await web3.eth.getBlock(e.blockNumber)
+            let timestamp = block.timestamp
+            e.timestamp = timestamp
+	        let [_singleCost,_eventLog] = await getSingleHisCost(tokenId,this.state,e,web3,posContract,UNI_TOKEN0,UNI_TOKEN1)
+            this.eventLog.push(_eventLog)
+            return _singleCost
+        }))
         console.log(costs)
+        let totalInput = 0
+        costs.map((c)=>{
+            totalInput = totalInput+parseFloat(c)
+        })
+        this.setState({
+            totalInput:costs
+        })
+    }
+
+    getInitCost = async()=>{
+        let initEvent = this.eventLog[0]
+        console.log(this.eventLog.length)
+        if(this.eventLog.length>1){
+            for(let e in this.eventLog){
+                if(e.timestamp < initEvent.timestamp){
+                    initEvent = e
+                    console.log(e.timestamp)
+                } 
+            }
+        }
+        console.log(initEvent)
+        this.setState({
+            hisPriceUsd0:initEvent.hisPriceUsd0,
+            hisPriceUsd1:initEvent.hisPriceUsd1,
+            hisPriceEth0:initEvent.hisPriceEth0,
+            hisPriceEth1:initEvent.hisPriceEth1,
+        })
+        console.log(this.state)
     }
 
     getData = async (tokenId) => {
-        this.getTotalCost(tokenId,this.nfpm,this.web3)
-        await this.getTokenEventInfo(tokenId)
-        await this.getMarketInfo(tokenId)
+        await this.getTokenInfo(tokenId)
+        //console.log(this.state)
+        await this.getInitInfo(tokenId)
+        console.log(this.state)
+        await this.getCurCost()
+        await this.getHisCost(tokenId,this.nfpm,this.web3,this.UNI_TOKEN0,this.UNI_TOKEN1)
+        await this.getInitCost()
         this.setLoading()
     }
 
