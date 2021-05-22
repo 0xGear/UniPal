@@ -179,22 +179,25 @@ export default class GrabData extends Component {
                 <Loading/>
             )
         }
-        let currentAsset = this.state.token0Str + " : " + parseFloat(this.state.currentAmount0).toFixed(4) + "\n" + this.state.token1Str + " : " + parseFloat(this.state.currentAmount1).toFixed(4)
+        let currentAsset = this.state.token0Str + " & " + this.state.token1Str
         let poolValue = "$" +((parseFloat(this.state.currentAmount0)*this.state.curPriceUsd0)+(parseFloat(this.state.currentAmount1)*this.state.curPriceUsd1)).toFixed(4)
         let initAssetAtInitPrice = ((parseFloat(this.state.initAmount0)*this.state.hisPriceUsd0)+(parseFloat(this.state.initAmount1)*this.state.hisPriceUsd1)).toFixed(4)
         let initAssetAtCurPrice = ((parseFloat(this.state.initAmount0)*this.state.curPriceUsd0)+(parseFloat(this.state.initAmount1)*this.state.curPriceUsd1)).toFixed(4)
         let curAssetAtCurPrice = ((parseFloat(this.state.currentAmount0)*this.state.curPriceUsd0)+(parseFloat(this.state.currentAmount1)*this.state.curPriceUsd1)).toFixed(4)
-        let netgain = ((curAssetAtCurPrice-initAssetAtInitPrice)/initAssetAtInitPrice).toFixed(4)+"%"
-        let initCurrentAmount0 = parseFloat(this.state.initAmount0).toFixed(4)+"/"+ parseFloat(this.state.currentAmount0).toFixed(4)
-        let initCurrentAmount1 = parseFloat(this.state.initAmount1).toFixed(4)+"/"+ parseFloat(this.state.currentAmount1).toFixed(4)
-        let initCurrentPrice0 = parseFloat(this.state.hisPriceUsd0).toFixed(4)+"/"+ parseFloat(this.state.curPriceUsd0).toFixed(4)
-        let initCurrentPrice1 = parseFloat(this.state.hisPriceUsd1).toFixed(4)+"/"+ parseFloat(this.state.curPriceUsd1).toFixed(4)
-        let priceVar0 = parseFloat(this.state.curPriceUsd0)-parseFloat(this.state.hisPriceUsd0)
-        let priceVar1 = parseFloat(this.state.curPriceUsd1)-parseFloat(this.state.hisPriceUsd1)
+        let netgain_percentage = ((curAssetAtCurPrice-initAssetAtInitPrice)/initAssetAtInitPrice).toFixed(4)+" %"
+        let netgain = "$ "+(curAssetAtCurPrice-initAssetAtInitPrice).toFixed(4)
+        let initCurrentAmount0 = Number(parseFloat(this.state.initAmount0).toFixed(4)).toLocaleString()+" / "+ Number(parseFloat(this.state.currentAmount0).toFixed(4)).toLocaleString()
+        let initCurrentAmount1 = Number(parseFloat(this.state.initAmount1).toFixed(4)).toLocaleString()+" / "+ Number(parseFloat(this.state.currentAmount1).toFixed(4)).toLocaleString()
+        let initCurrentPrice0 = Number(parseFloat(this.state.hisPriceUsd0).toFixed(4)).toLocaleString()+" / "+ Number(parseFloat(this.state.curPriceUsd0).toFixed(4)).toLocaleString()
+        let initCurrentPrice1 = Number(parseFloat(this.state.hisPriceUsd1).toFixed(4)).toLocaleString()+" / "+ Number(parseFloat(this.state.curPriceUsd1).toFixed(4)).toLocaleString()
+        let amountVar0 = Number(((parseFloat(this.state.currentAmount0)-parseFloat(this.state.initAmount0)/parseFloat(this.state.initAmount0))).toFixed(4)).toLocaleString()+" %"
+        let amountVar1 = Number(((parseFloat(this.state.currentAmount1)-parseFloat(this.state.initAmount1)/parseFloat(this.state.initAmount1))).toFixed(4)).toLocaleString()+" %"
+        let priceVar0 = ((parseFloat(this.state.curPriceUsd0)-parseFloat(this.state.hisPriceUsd0))/parseFloat(this.state.hisPriceUsd0)).toFixed(4)+" %"
+        let priceVar1 = ((parseFloat(this.state.curPriceUsd1)-parseFloat(this.state.hisPriceUsd1))/parseFloat(this.state.hisPriceUsd1)).toFixed(4)+" %"
         return (
 
             <div id="data_container">
-                <div id="balck_card_container">
+                <div id="black_card_container">
                     <BlackCard
                         title="Current Asset"
                         value={currentAsset} />
@@ -208,25 +211,28 @@ export default class GrabData extends Component {
                 <AssetInfoCard
                     title = "LP Gain / Asset Info (USD)"
                     r0c0="initial asset at initial price"
-                    r0c1={initAssetAtInitPrice}
+                    r0c1={"$ "+Number(initAssetAtInitPrice).toLocaleString()}
                     r1c0="initial assets at current price"
-                    r1c1={initAssetAtCurPrice}
+                    r1c1={"$ "+Number(initAssetAtCurPrice).toLocaleString()}
                     r2c0="current asset at current price"
-                    r2c1={curAssetAtCurPrice}
+                    r2c1={"$ "+Number(curAssetAtCurPrice).toLocaleString()}
                     r3c0="Gain from market price"
-                    r3c1={netgain}
+                    r3c1={netgain+" ("+netgain_percentage+")"}
                     r0c0_2="token"
                     r0c1_2="initial / current amount"
-                    r0c2_2="initial / current price"
-                    r0c3_2="price variation"
+                    r0c2_2="amount variation"
+                    r0c3_2="initial / current price"
+                    r0c4_2="price variation"
                     r1c0_2={this.state.token0Str}
                     r1c1_2={initCurrentAmount0}
-                    r1c2_2={initCurrentPrice0}
-                    r1c3_2={priceVar0}
+                    r1c2_2={amountVar0}
+                    r1c3_2={"$ "+initCurrentPrice0}
+                    r1c4_2={priceVar0}
                     r2c0_2={this.state.token1Str}
                     r2c1_2={initCurrentAmount1}
-                    r2c2_2={initCurrentPrice1}
-                    r2c3_2={priceVar1}
+                    r2c2_2={amountVar1}
+                    r2c3_2={"$ "+initCurrentPrice1}
+                    r2c4_2={priceVar1}
 
                 />
             </div>

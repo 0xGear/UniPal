@@ -1,33 +1,45 @@
 @import '../App.scss';
 .blackcard{
+    display:flex;
+    flex-wrap:wrap;
+    flex-direction:column;
+    align-items: space-between;
     font-family: var(--text-font);
     border-radius: 20px;
     background-color: black;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     margin: 0;
-    padding: 1em;
-    width: 80%;
+    padding: 1.5em;
+    width: 92%;
     margin-right:auto;
     margin-left:auto;
     margin-top:.5em;
     .title{
+        display:block;
         color:white;
         font-weight: var(--h2-weight);
-        font-size: 1.3em;
-        margin-bottom: .5em;
+        font-size: 1em;
+        margin-bottom: 1em;
     }
     .value{
+        justify-self:flex-end;
+        text-align:center;
+        float:right;
         color: white;
         font-weight: var(--text-weight);
-        font-size: 1em;
+        font-size: 1.5em;
     }
 }
 
 @media only screen and (min-width:762px){
     .blackcard{
-        display:none;
-        width:20% !important;
-        margin:0 !important;
-        margin-right:0 !important;
-        margin-left:0 !important;
+        align-items: space-between;
+        width: 28% !important;
+        margin: 0;
+        text-align:center;
+        padding:1em;
+        .value{
+            text-align:center;
+        }
     }
 }

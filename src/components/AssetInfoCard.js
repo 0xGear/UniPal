@@ -25,14 +25,20 @@ export default class AssetInfoCard extends Component{
                         <div className="col1 sub-title">{this.props.r0c1_2}</div>
                         <div className="col2 sub-title">{this.props.r0c2_2}</div>
                         <div className="col3 sub-title">{this.props.r0c3_2}</div>
+                        <div className="col4 sub-title">{this.props.r0c4_2}</div>
                         <div className="col0">{this.props.r1c0_2}</div>
                         <div className="col1">{this.props.r1c1_2}</div>
                         <div className="col2">{this.props.r1c2_2}</div>
                         <div className="col3">{this.props.r1c3_2}</div>
+                        <div className="col4">{this.props.r1c4_2}</div>
                         <div className="col0">{this.props.r2c0_2}</div>
                         <div className="col1">{this.props.r2c1_2}</div>
                         <div className="col2">{this.props.r2c2_2}</div>
                         <div className="col3">{this.props.r2c3_2}</div>
+                        <div className="col4">{this.props.r2c4_2}</div>
+                    </div>
+                    <div id="sizealert">
+                    For more info please resize the window to full screen width.
                     </div>
             </div>
         )

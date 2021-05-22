@@ -1,6 +1,9 @@
 #data_container{
     padding: 1em;
     #black_card_container{
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: column;
         margin-top: 0em;
         width:100%;
     }
@@ -10,18 +13,12 @@
     #data_container{
         padding: 2em 3em;
         #black_card_container{
-            display: flex;
-            float:right;
-            flex-wrap:nowrap;
-            place-content:space-around;
-            text-align:center;
-            //grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
-            //place-content: space-around;
-            //flex-flow: nowrap !important;
-            //float:left;
-            //margin: 0em;
-            //padding: 0em;
-            //width:100%;
+            display:flex !important;
+            flex-wrap: wrap !important;
+            flex-direction: row !important;
+            width: 100%;
+            place-content:start space-between !important;
+            //text-align:center;
         }
     }
 }
