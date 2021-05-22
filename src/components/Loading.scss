@@ -1,4 +1,4 @@
-/* LOADER 1 */
+@import "../App.scss";
 .loader {
   height: 20px;
   transform-origin: bottom center;
@@ -7,7 +7,7 @@
 
 .circle {
   display: inline-block;
-  background-color: purple;
+  background-color: var(--primary-purple);
   height: 40px;
   width: 40px;
   border-radius: 50%;
@@ -17,7 +17,7 @@
 }
 
 .circle:nth-child(2) {
-  background-color: palevioletred;
+  background-color: var(--primary-pink);
   animation-delay: 0.75s;
 }
 
