@@ -10,7 +10,7 @@
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     margin: 0;
     padding: 1.5em;
-    width: 92%;
+    width: 30%;
     margin-right:auto;
     margin-left:auto;
     margin-top:.5em;
@@ -18,7 +18,7 @@
         display:block;
         color:white;
         font-weight: var(--h2-weight);
-        font-size: 1em;
+        font-size: .8em;
         margin-bottom: 1em;
     }
     .value{
@@ -27,7 +27,7 @@
         float:right;
         color: white;
         font-weight: var(--text-weight);
-        font-size: 1.5em;
+        font-size: 1.3em;
     }
 }
 
@@ -36,10 +36,19 @@
         align-items: space-between;
         width: 28% !important;
         margin: 0;
+        margin-bottom:2em;
         text-align:center;
         padding:1em;
+        .title{
+        display:block;
+        color:white;
+        font-weight: var(--h2-weight);
+        font-size: 1em !important;
+        margin-bottom: 1em;
+        }
         .value{
             text-align:center;
+            font-size: 1.5em !important;
         }
     }
 }

@@ -1,6 +1,7 @@
 import { Component } from "react";
 import BlackCard from '../components/BlackCard.js'
 import Loading from '../components/Loading.js'
+import EventInfoCard from "../components/EventInfoCard.js"
 import AssetInfoCard from "../components/AssetInfoCard.js"
 import {getEventInfo, getSingleHisCost} from "./Funcs.js"
 import { Token, CurrencyAmount, WETH9, currencyEquals } from '@uniswap/sdk-core'
@@ -19,7 +20,7 @@ export default class GrabData extends Component {
         super(props)
         console.log("props", props)
         this.state = {
-            loading: false,
+            loading: true,
         }
         this.setLoading = this.setLoading.bind(this)
         this.web3 = new Web3('https://eth-mainnet.alchemyapi.io/v2/5atvVrendBmTbMs--ytb0vC52Rp6r97n');
@@ -121,56 +122,6 @@ export default class GrabData extends Component {
             })
     }
 
-    
-    getMarketInfo = async (tokenId) => {
-        let date = new Date(this.state.timeStamp * 1000).getDate()
-        let month = new Date(this.state.timeStamp * 1000).getMonth() + 1
-        let year = new Date(this.state.timeStamp * 1000).getFullYear()
-        console.log(date, year, month)
-        const fetchCoin0 = await fetch(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${this.state.token0}`)
-            .then((response) => response.json())
-            .then((data) => {
-                this.setState({
-                    id0: data['id'],
-                    curPriceUsd0: data['market_data']['current_price']['usd'],
-                    curPriceEth0: data['market_data']['current_price']['eth']
-                })
-            })
-            .then(async (coinInfo0) => {
-                await fetch(`https://api.coingecko.com/api/v3/coins/${this.state.id0}/history?date=${date}-${month}-${year}`)
-                    .then((response) => response.json())
-                    .then((data) => {
-                        this.setState({
-                            hisPriceUsd0: data['market_data']['current_price']['usd'],
-                            hisPriceEth0: data['market_data']['current_price']['eth']
-                        })
-                    })
-            })
-            .catch((error) => { console.log(error) })
-
-        const fetchCoin1 = await fetch(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${this.state.token1}`)
-            .then((response) => response.json())
-            .then((data) => {
-                this.setState({
-                    id1: data['id'],
-                    curPriceUsd1: data['market_data']['current_price']['usd'],
-                    curPriceEth1: data['market_data']['current_price']['eth']
-                })
-            })
-            .then(async (coinInfo1) => {
-                await fetch(`https://api.coingecko.com/api/v3/coins/${this.state.id1}/history?date=${date}-${month}-${year}`)
-                    .then((response) => response.json())
-                    .then((data) => {
-                        this.setState({
-                            hisPriceUsd1: data['market_data']['current_price']['usd'],
-                            hisPriceEth1: data['market_data']['current_price']['eth']
-                        })
-                    })
-            })
-            .catch((error) => { console.log(error) })
-        console.log(this.state)
-    }
-
     getHisCost= async(tokenId,posContract,web3,UNI_TOKEN0,UNI_TOKEN1)=>{
         let[increaseLPEvent,decreaseLPEvent,collectEvent] = await getEventInfo(tokenId,posContract)
         let inDeEvents=[]
@@ -190,7 +141,8 @@ export default class GrabData extends Component {
             totalInput = totalInput+parseFloat(c)
         })
         this.setState({
-            totalInput:costs
+            totalInput:costs,
+            eventLog:this.eventLog
         })
     }
 
@@ -201,11 +153,9 @@ export default class GrabData extends Component {
             for(let e in this.eventLog){
                 if(e.timestamp < initEvent.timestamp){
                     initEvent = e
-                    console.log(e.timestamp)
                 } 
             }
         }
-        console.log(initEvent)
         this.setState({
             hisPriceUsd0:initEvent.hisPriceUsd0,
             hisPriceUsd1:initEvent.hisPriceUsd1,
@@ -219,33 +169,39 @@ export default class GrabData extends Component {
         await this.getTokenInfo(tokenId)
         //console.log(this.state)
         await this.getInitInfo(tokenId)
-        console.log(this.state)
+        //console.log(this.state)
         await this.getCurCost()
         await this.getHisCost(tokenId,this.nfpm,this.web3,this.UNI_TOKEN0,this.UNI_TOKEN1)
         await this.getInitCost()
-        this.setLoading()
+        //console.log(this.state)
+        console.log(this.state)
+        this.setLoading(false)
     }
 
-    setLoading = () => {
-        this.setState((prevstate) => ({
-            loading: !prevstate.loading
-        }))
+    setLoading = (_load) => {
+        //this.setState((prevstate) => ({
+        //    loading: _load
+        //}))
+        this.setState({
+            loading: _load
+        })
     }
 
     componentDidMount() {
-        this.setLoading()
+        this.setLoading(true)
         this.getData(this.props.state.tokenId)
     }
 
     componentDidUpdate(prevProps, prevState) {
         if (this.props.state.tokenId !== prevProps.state.tokenId) {
-            this.setLoading()
+            this.setLoading(true)
             this.getData(this.props.state.tokenId)
         }
     }
 
 
     render() {
+        console.log(this.state.loading)
         if (this.state.loading) {
             return (
                 <Loading/>
@@ -267,7 +223,6 @@ export default class GrabData extends Component {
         let priceVar0 = ((parseFloat(this.state.curPriceUsd0)-parseFloat(this.state.hisPriceUsd0))/parseFloat(this.state.hisPriceUsd0)).toFixed(4)+" %"
         let priceVar1 = ((parseFloat(this.state.curPriceUsd1)-parseFloat(this.state.hisPriceUsd1))/parseFloat(this.state.hisPriceUsd1)).toFixed(4)+" %"
         return (
-
             <div id="data_container">
                 <div id="black_card_container">
                     <BlackCard
@@ -279,6 +234,15 @@ export default class GrabData extends Component {
                     <BlackCard
                         title="Net Market Gain (w/o fee)"
                         value={"$ "+Number(netgain).toLocaleString()} />
+                    <BlackCard
+                        title="Your Overall Investment"
+                        value={"$ "+Number(this.state.totalInput).toLocaleString()} />
+                    <BlackCard
+                        title={this.state.token0Str+" price variation"}
+                        value={priceVar0} />
+                    <BlackCard
+                    title={this.state.token1Str+" price variation"}
+                    value={priceVar1} />
                 </div>
                 <AssetInfoCard
                     title = "LP Gain / Asset Info (USD)"
@@ -305,8 +269,10 @@ export default class GrabData extends Component {
                     r2c2_2={amountVar1}
                     r2c3_2={"$ "+initCurrentPrice1}
                     r2c4_2={priceVar1}
-
                 />
+                <EventInfoCard title="Your Event Log" events={this.state.eventLog}
+                />
+
             </div>
         )
     }
