@@ -43,7 +43,9 @@
         }
         #search_btn{
             width:30%;
-            background-color: var(--primary-pink);
+            //background-color: var(--primary-pink);
+            background: rgb(200,16,228);
+            background: linear-gradient(166deg, rgba(200,16,228,1) 0%, rgba(237,23,166,1) 100%);
             color: white;
             border:none;
             border-radius: 60px;

@@ -1,6 +1,7 @@
 import { Component } from "react"
 
 import "./AssetInfoCard.scss"
+import "../App.scss"
 
 export default class AssetInfoCard extends Component{
     constructor(props){

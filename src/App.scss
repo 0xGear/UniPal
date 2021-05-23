@@ -15,6 +15,15 @@
     --small-font:1em;
 }
 
+.gradual-text{
+    background: linear-gradient(to top, var(--primary-pink), var(--primary-purple));
+    background: -webkit-linear-gradient(to top, var(--primary-pink), var(--primary-purple));
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+
 .logo-text{
     font-weight: var(--logo-weight);
     font-family: var(--logo-font);

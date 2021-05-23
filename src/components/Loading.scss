@@ -1,13 +1,19 @@
 @import "../App.scss";
 .loader {
-  height: 20px;
+  //height: 40px;
+  position: absolute;
+  height: 35%;
+  top:5%;
+  left:48%;
   transform-origin: bottom center;
   animation: rotate 3s linear infinite;
 }
 
 .circle {
   display: inline-block;
-  background-color: var(--primary-purple);
+  //background-color: var(--primary-purple);
+  background: rgb(200,16,228);
+  background: linear-gradient(166deg, rgba(200,16,228,1) 0%, rgba(237,23,166,1) 100%);
   height: 40px;
   width: 40px;
   border-radius: 50%;
@@ -17,7 +23,8 @@
 }
 
 .circle:nth-child(2) {
-  background-color: var(--primary-pink);
+  //background-color: rgb(200,16,228);
+  background: black;
   animation-delay: 0.75s;
 }
 
@@ -31,4 +38,41 @@
   50% {
     transform: scale(1);
   }
+}
+
+
+@media only screen and (min-width:762px){
+    .loader {
+        //height: 40px;
+        position: absolute;
+        height: 20%;
+        top:28%;
+        left:48%;
+        transform-origin: bottom center;
+        animation: rotate 3s linear infinite;
+    }
+}
+
+@media only screen and (min-width:1024px){
+    .loader {
+        //height: 40px;
+        position: absolute;
+        height: 20%;
+        top:28%;
+        left:51%;
+        transform-origin: bottom center;
+        animation: rotate 3s linear infinite;
+    }
+}
+
+@media only screen and (min-width:1670px){
+    .loader {
+        //height: 40px;
+        position: absolute;
+        height: 20%;
+        top:28%;
+        left:51%;
+        transform-origin: bottom center;
+        animation: rotate 3s linear infinite;
+    }
 }
