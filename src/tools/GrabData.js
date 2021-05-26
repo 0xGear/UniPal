@@ -265,7 +265,9 @@ export default class GrabData extends Component {
         let amountVar1 = Number((((parseFloat(this.state.currentAmount1)-parseFloat(this.state.initAmount1))*100/parseFloat(this.state.initAmount1))).toFixed(4)).toLocaleString()+" %"
         let priceVar0 = (((parseFloat(this.state.curPriceUsd0)-parseFloat(this.state.hisPriceUsd0))*100/parseFloat(this.state.hisPriceUsd0))).toFixed(2)+" %"
         let priceVar1 = (((parseFloat(this.state.curPriceUsd1)-parseFloat(this.state.hisPriceUsd1))*100/parseFloat(this.state.hisPriceUsd1))).toFixed(2)+" %"
+        let displayIL = (poolValue ==0)? false:true
         let impermanentLost = (curAssetAtCurPrice - (Number(this.state.totalInputToken0)*this.state.curPriceUsd0+Number(this.state.totalInputToken1)*this.state.curPriceUsd1))
+        let ilvalue= (displayIL)? "$ "+Number(Number(impermanentLost).toFixed(4)).toLocaleString():"-"
         return (
             <div id="data_container">
                 <div id="black_card_container">
@@ -280,7 +282,7 @@ export default class GrabData extends Component {
                         value={"$ "+Number(this.state.totalInput).toLocaleString()} />
                     <BlackCard
                         title={"Impermanent Lost"}
-                        value={"$ "+Number(Number(impermanentLost).toFixed(4)).toLocaleString()} />
+                        value={ilvalue} />
                     <BlackCard
                         title="Net Market Gain (w/o fee)"
                         value={"$ "+Number(netgain).toLocaleString()} />

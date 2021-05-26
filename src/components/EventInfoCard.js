@@ -67,7 +67,7 @@ export default class EventInfoCard extends Component {
                     <div id="text">
                         <p>* overall investment = SUM(invest value of each event)</p>
                         <p>* Gain from market price = (current asset @ current price) - (overall investment)</p>
-                        <p>* IL calcualtion may not apply if you've extracted all liquidity</p>
+                        <p>* IL calcualtion may not apply if you've extracted all liquidity for now (still working on it)</p>
                         <p>* IL = (current asset @ current price) - (invested asset @ current price)</p>
                     </div>
                 </div>
