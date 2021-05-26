@@ -126,6 +126,7 @@ export default class GrabData extends Component {
         let[increaseLPEvent,decreaseLPEvent,collectEvent] = await getEventInfo(tokenId,posContract)
         let inDeEvents=[]
         this.eventLog = []
+        console.log(collectEvent)
         inDeEvents = inDeEvents.concat(increaseLPEvent,decreaseLPEvent)
         let costs = await Promise.all(inDeEvents.map(async (e) => {
             let block = await web3.eth.getBlock(e.blockNumber)
@@ -135,12 +136,53 @@ export default class GrabData extends Component {
             this.eventLog.push(_eventLog)
             return _singleCost
         }))
+        let collected = await Promise.all(collectEvent.map(async (e) => {
+            let block = await web3.eth.getBlock(e.blockNumber)
+            let timestamp = block.timestamp
+            e.timestamp = timestamp
+	        let [_singleCost,_eventLog] = await getSingleHisCost(tokenId,this.state,e,web3,posContract,UNI_TOKEN0,UNI_TOKEN1)
+            //this.eventLog.push(_eventLog)
+            console.log("single cost",_singleCost)
+            return _singleCost
+        }))
         let totalInput = 0
-        costs.map((c)=>{
-            totalInput = totalInput+parseFloat(c)
+        let totalCollectedToken0 = 0
+        let totalCollectedToken1 = 0
+        let totalCollected = 0
+        let totalInputToken0 = 0
+        let totalInputToken1 = 0
+        let totalDecrease = 0
+        let totalDecreaseToken0 = 0
+        let totalDecreaseToken1 = 0
+        await costs.map((c)=>{
+            if(c.usd<0){
+                totalDecrease = totalDecrease+parseFloat(c.usd)
+                totalDecreaseToken0 = totalDecreaseToken0+parseFloat(c.token0)
+                totalDecreaseToken1 = totalDecreaseToken1+parseFloat(c.token1)
+            }
+            totalInput = totalInput+parseFloat(c.usd)
+            totalInputToken0 = totalInputToken0+parseFloat(c.token0)
+            totalInputToken1 = totalInputToken1+parseFloat(c.token1)
         })
+        await collected.map((c)=>{
+            totalCollected = totalCollected+Math.abs(parseFloat(c.usd))
+            totalCollectedToken0 = totalCollectedToken0+Math.abs(parseFloat(c.token0))
+            totalCollectedToken1 = totalCollectedToken1+Math.abs(parseFloat(c.token1))
+        })
+
+        totalCollected = Math.abs(totalCollected) + totalDecrease
+        totalCollectedToken0 = Math.abs(totalCollectedToken0) + totalDecreaseToken0
+        totalCollectedToken1 = Math.abs(totalCollectedToken1) + totalDecreaseToken1
+
+        console.log(totalCollected)
+
         this.setState({
             totalInput:totalInput,
+            totalInputToken0:totalInputToken0,
+            totalInputToken1:totalInputToken1,
+            totalCollected:Math.abs(totalCollected),
+            totalCollectedToken0:Math.abs(totalCollectedToken0),
+            totalCollectedToken1:Math.abs(totalCollectedToken1),
             eventLog:this.eventLog
         })
     }
@@ -203,7 +245,6 @@ export default class GrabData extends Component {
 
 
     render() {
-        console.log(this.state.loading)
         if (this.state.loading) {
             return (
                 <Loading/>
@@ -222,8 +263,9 @@ export default class GrabData extends Component {
         let initCurrentPrice1 = Number(parseFloat(this.state.hisPriceUsd1).toFixed(4)).toLocaleString()+" / "+ Number(parseFloat(this.state.curPriceUsd1).toFixed(4)).toLocaleString()
         let amountVar0 = Number((((parseFloat(this.state.currentAmount0)-parseFloat(this.state.initAmount0))*100/parseFloat(this.state.initAmount0))).toFixed(4)).toLocaleString()+" %"
         let amountVar1 = Number((((parseFloat(this.state.currentAmount1)-parseFloat(this.state.initAmount1))*100/parseFloat(this.state.initAmount1))).toFixed(4)).toLocaleString()+" %"
-        let priceVar0 = (((parseFloat(this.state.curPriceUsd0)-parseFloat(this.state.hisPriceUsd0))*100/parseFloat(this.state.hisPriceUsd0))).toFixed(4)+" %"
-        let priceVar1 = (((parseFloat(this.state.curPriceUsd1)-parseFloat(this.state.hisPriceUsd1))*100/parseFloat(this.state.hisPriceUsd1))).toFixed(4)+" %"
+        let priceVar0 = (((parseFloat(this.state.curPriceUsd0)-parseFloat(this.state.hisPriceUsd0))*100/parseFloat(this.state.hisPriceUsd0))).toFixed(2)+" %"
+        let priceVar1 = (((parseFloat(this.state.curPriceUsd1)-parseFloat(this.state.hisPriceUsd1))*100/parseFloat(this.state.hisPriceUsd1))).toFixed(2)+" %"
+        let impermanentLost = (curAssetAtCurPrice - (Number(this.state.totalInputToken0)*this.state.curPriceUsd0+Number(this.state.totalInputToken1)*this.state.curPriceUsd1))
         return (
             <div id="data_container">
                 <div id="black_card_container">
@@ -231,20 +273,23 @@ export default class GrabData extends Component {
                         title="Current Asset"
                         value={currentAsset} />
                     <BlackCard
-                        title="Pool Value (USD)"
+                        title="Current Pool Value (USD)"
                         value={"$ "+Number(poolValue).toLocaleString()} />
-                    <BlackCard
-                        title="Net Market Gain (w/o fee)"
-                        value={"$ "+Number(netgain).toLocaleString()} />
                     <BlackCard
                         title="Your Overall Investment"
                         value={"$ "+Number(this.state.totalInput).toLocaleString()} />
                     <BlackCard
-                        title={this.state.token0Str+" price variation"}
-                        value={priceVar0} />
+                        title={"Impermanent Lost"}
+                        value={"$ "+Number(Number(impermanentLost).toFixed(4)).toLocaleString()} />
                     <BlackCard
-                    title={this.state.token1Str+" price variation"}
-                    value={priceVar1} />
+                        title="Net Market Gain (w/o fee)"
+                        value={"$ "+Number(netgain).toLocaleString()} />
+                    <BlackCard
+                        title="Fee Collected"
+                        value={"$ "+Number(Number(this.state.totalCollected.toFixed(4))).toLocaleString()} />    
+                    {/*<BlackCard
+                        title={this.state.token0Str+" / "+this.state.token1Str+" price variation"}
+                    value={priceVar0+" / "+priceVar1} />*/}
                 </div>
                 <AssetInfoCard
                     title = "LP Gain / Asset Info (USD)"
@@ -272,7 +317,7 @@ export default class GrabData extends Component {
                     r2c3_2={"$ "+initCurrentPrice1}
                     r2c4_2={priceVar1}
                 />
-                <EventInfoCard title="Your Event Log" events={this.state.eventLog}
+                <EventInfoCard title="Gain and Impermanent Lost" state={this.state}
                 />
 
             </div>

@@ -50,5 +50,12 @@ export async function getSingleHisCost(tokenId,tokenInfo,event,web3,posContract,
     event.month = month
     event.year = year
     event.investment = investment
-    return [investment,event]
+    event.amount0 = _amount0
+    event.amount1 = _amount1
+    let costdata = {
+        usd: investment,
+        token0: parseFloat(_amount0)*Number(mul),
+        token1: parseFloat(_amount1)*Number(mul),
+    }
+    return [costdata,event]
 }

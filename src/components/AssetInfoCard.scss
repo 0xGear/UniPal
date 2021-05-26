@@ -19,17 +19,12 @@
         font-weight:1.5em;
     }
     
-    .table42{
-        margin-top:.5em;
+    #list{
+        margin-top:2em;
         align-items:end;
-        display:grid;
-        font-size:1em;
-        font-weight:700;
-        grid-template-columns:60% auto;
-        .col1, .col2{
-            margin-top:.5em;
-        }
+        margin-bottom:2em;
     }
+
     .table34{
         display:none;
     }
@@ -43,10 +38,18 @@
     }
 }
 
+.list{
+    margin-top:.5em;
+    align-items:end;
+    display:grid;
+    font-size:1em;
+    font-weight:700;
+    grid-template-columns:60% auto;
+}
+
 
 @media only screen and (min-width:762px){
     .assetinfocard{ 
-
         .table34{
             display:none !important;
         }
@@ -69,7 +72,7 @@
             margin-top:2em;
             grid-template-columns:10% 30% 20% 25% 15%;
             font-size:.8em;
-            font-weight:1.5em;
+            font-weight:700;
             .sub-title{
                 color:#8c8c8c;
             }
