@@ -20,6 +20,7 @@
         font-weight: var(--h2-weight);
         font-size: .8em;
         margin-bottom: 1em;
+        position:relative;
     }
     .value{
         justify-self:flex-end;
@@ -29,6 +30,26 @@
         font-weight: var(--text-weight);
         font-size: 1.3em;
     }
+    
+}
+.blackcard .title .tooltip{
+    opacity:0.8;
+    width: 15em;
+    visibility:hidden;
+    background-color: black;
+    color: white;
+    font-size: .8em;
+    font-weight: 400;
+    text-align: center;
+    padding: 5px 5px;
+    border-radius: 10px;
+    position: absolute;
+    left:25%;
+    bottom:100%;
+    z-index: 1;
+}
+.blackcard .title:hover .tooltip{
+    visibility: visible;
 }
 
 @media only screen and (min-width:762px){

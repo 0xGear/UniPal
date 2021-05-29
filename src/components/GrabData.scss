@@ -7,6 +7,18 @@
         margin-top: 0em;
         width:100%;
     }
+    #toggle_container{
+        display:flex;
+        flex-flow: row;
+        float: right;
+        margin-bottom: 2em;
+        #right_text{
+            margin-left: 10px;
+            align-self: center;
+            font-family: var(--text-font);
+            font-weight: 700;
+        }
+    }
 }
 
 @media only screen and (min-width:762px){

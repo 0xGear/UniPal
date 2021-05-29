@@ -56,6 +56,13 @@ export async function getSingleHisCost(tokenId,tokenInfo,event,web3,posContract,
         usd: investment,
         token0: parseFloat(_amount0)*Number(mul),
         token1: parseFloat(_amount1)*Number(mul),
+        price0: event.hisPriceUsd0,
+        price1: event.hisPriceUsd1,
     }
     return [costdata,event]
+}
+
+
+export function calIL(lastAsset,finalAsset,finalPrice){
+    return "$ "+((finalAsset.tkn0 - lastAsset.tkn0)*finalPrice.tkn0+(finalAsset.tkn1-lastAsset.tkn1)*finalPrice.tkn1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})
 }

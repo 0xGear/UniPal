@@ -42,6 +42,16 @@
 
     }
 
+    #extractalert{
+        margin-bottom:2em;
+        color:var(--primary-pink);
+        display:flex;
+        font-family:var(--text-font);
+        font-size:1em;
+        font-weight:700em;
+
+    }
+
     #text{
         p{
             color:black;
@@ -72,6 +82,9 @@
     font-size:1em;
     font-weight:700;
     grid-template-columns:60% auto;
+    .alignright{
+        text-align: right;
+    }
 }
 
 @media only screen and (min-width:762px){

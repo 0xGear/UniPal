@@ -25,6 +25,10 @@
         margin-bottom:2em;
     }
 
+    .alignright{
+        text-align: right;
+    }
+
     .table34{
         display:none;
     }
@@ -76,7 +80,7 @@
             .sub-title{
                 color:#8c8c8c;
             }
-            .col1,.col2{
+            .col{
                 align-self:end;
                 margin-top:.5em;
             }

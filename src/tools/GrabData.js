@@ -3,7 +3,8 @@ import BlackCard from '../components/BlackCard.js'
 import Loading from '../components/Loading.js'
 import EventInfoCard from "../components/EventInfoCard.js"
 import AssetInfoCard from "../components/AssetInfoCard.js"
-import {getEventInfo, getSingleHisCost} from "./Funcs.js"
+import Toggle from "../components/Toggle.js"
+import {getEventInfo, getSingleHisCost, calIL} from "./Funcs.js"
 import { Token, CurrencyAmount, WETH9, currencyEquals } from '@uniswap/sdk-core'
 import { encodeSqrtRatioX96 } from '@uniswap/v3-sdk'
 import nfpmAbi from '@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json'
@@ -21,8 +22,10 @@ export default class GrabData extends Component {
         console.log("props", props)
         this.state = {
             loading: true,
+            heldintkn:false,
         }
         this.setLoading = this.setLoading.bind(this)
+        this.changeHandler = this.changeHandler.bind(this)
         this.web3 = new Web3('https://eth-mainnet.alchemyapi.io/v2/5atvVrendBmTbMs--ytb0vC52Rp6r97n');
         let uniNonFungiblePositionManagerAddr = "0xc36442b4a4522e871399cd717abdd847ab11fe88";
         this.nfpm = new this.web3.eth.Contract(nfpmAbi.abi, uniNonFungiblePositionManagerAddr);
@@ -154,36 +157,60 @@ export default class GrabData extends Component {
         let totalDecrease = 0
         let totalDecreaseToken0 = 0
         let totalDecreaseToken1 = 0
+        let totalIncrease = 0
+        let totalIncreaseToken0 = 0
+        let totalIncreaseToken1 = 0
+        let lastDecreaseToken0 = 0
+        let lastDecreaseToken1 = 0
+        let lastDecreasePrice0 = 0
+        let lastDecreasePrice1 = 0
         await costs.map((c)=>{
             if(c.usd<0){
-                totalDecrease = totalDecrease+parseFloat(c.usd)
-                totalDecreaseToken0 = totalDecreaseToken0+parseFloat(c.token0)
-                totalDecreaseToken1 = totalDecreaseToken1+parseFloat(c.token1)
+                totalDecrease = totalDecrease+Number(c.usd)
+                totalDecreaseToken0 = totalDecreaseToken0+Number(c.token0)
+                totalDecreaseToken1 = totalDecreaseToken1+Number(c.token1)
+                lastDecreaseToken0 = Math.abs(c.token0)
+                lastDecreaseToken1 = Math.abs(c.token1)
+                lastDecreasePrice0 = Math.abs(c.price0)
+                lastDecreasePrice1 = Math.abs(c.price1)
             }
-            totalInput = totalInput+parseFloat(c.usd)
-            totalInputToken0 = totalInputToken0+parseFloat(c.token0)
-            totalInputToken1 = totalInputToken1+parseFloat(c.token1)
+            if(c.usd>0){
+                totalIncrease = totalIncrease+Number(c.usd)
+                totalIncreaseToken0 = totalIncreaseToken0+Number(c.token0)
+                totalIncreaseToken1 = totalIncreaseToken1+Number(c.token1)
+            }
+            totalInput = totalInput+Number(c.usd)
+            totalInputToken0 = totalInputToken0+Number(c.token0)
+            totalInputToken1 = totalInputToken1+Number(c.token1)
         })
         await collected.map((c)=>{
-            totalCollected = totalCollected+Math.abs(parseFloat(c.usd))
-            totalCollectedToken0 = totalCollectedToken0+Math.abs(parseFloat(c.token0))
-            totalCollectedToken1 = totalCollectedToken1+Math.abs(parseFloat(c.token1))
+            totalCollected = totalCollected+Math.abs(Number(c.usd))
+            totalCollectedToken0 = totalCollectedToken0+Math.abs(Number(c.token0))
+            totalCollectedToken1 = totalCollectedToken1+Math.abs(Number(c.token1))
         })
 
         totalCollected = Math.abs(totalCollected) + totalDecrease
         totalCollectedToken0 = Math.abs(totalCollectedToken0) + totalDecreaseToken0
         totalCollectedToken1 = Math.abs(totalCollectedToken1) + totalDecreaseToken1
 
-        console.log(totalCollected)
-
         this.setState({
-            totalInput:totalInput,
-            totalInputToken0:totalInputToken0,
-            totalInputToken1:totalInputToken1,
-            totalCollected:Math.abs(totalCollected),
-            totalCollectedToken0:Math.abs(totalCollectedToken0),
-            totalCollectedToken1:Math.abs(totalCollectedToken1),
-            eventLog:this.eventLog
+            "totalInput":totalInput,
+            "totalInputToken0":totalInputToken0,
+            "totalInputToken1":totalInputToken1,
+            "totalCollected":Math.abs(totalCollected),
+            "totalCollectedToken0":Math.abs(totalCollectedToken0),
+            "totalCollectedToken1":Math.abs(totalCollectedToken1),
+            "totalDecrease":Math.abs(totalDecrease),
+            "totalDecreaseToken0":Math.abs(totalDecreaseToken0),
+            "totalDecreaseToken1":Math.abs(totalDecreaseToken1),
+            "totalIncrease":Math.abs(totalIncrease),
+            "totalIncreaseToken0":Math.abs(totalIncreaseToken0),
+            "totalIncreaseToken1":Math.abs(totalIncreaseToken1),
+            "lastDecreaseToken0":lastDecreaseToken0,
+            "lastDecreaseToken1":lastDecreaseToken1,
+            "lastDecreasePrice0":lastDecreasePrice0,
+            "lastDecreasePrice1":lastDecreasePrice1,
+            "eventLog":this.eventLog
         })
     }
 
@@ -218,14 +245,92 @@ export default class GrabData extends Component {
         await this.getHisCost(tokenId,this.nfpm,this.web3,this.UNI_TOKEN0,this.UNI_TOKEN1)
         await this.getInitCost()
         //console.log(this.state)
-        console.log(this.state)
+        this.getDisplayData()
         this.setLoading(false)
     }
 
+    getDisplayData = () =>{
+        let usdPreFix = "$ "
+        let percentPostFix = " %"
+
+        // set for basic claculation
+        this.num ={
+            "initAmount0":Number(this.state.initAmount0),
+            "initAmount1":Number(this.state.initAmount1),
+            "curAmount0":Number(this.state.currentAmount0),
+            "curAmount1":Number(this.state.currentAmount1),
+        }
+        this.num.initAssetAtInitPrice = (this.num.initAmount0*this.state.hisPriceUsd0)+(this.num.initAmount1*this.state.hisPriceUsd1)
+        this.num.curAssetAtCurPrice = (this.num.curAmount0*this.state.curPriceUsd0)+(this.num.curAmount1*this.state.curPriceUsd1)
+        this.num.initAssetAtCurPrice=(this.num.initAmount0*this.state.curPriceUsd0)+(this.num.initAmount1*this.state.curPriceUsd1)
+        this.num.marketGain=this.num.curAssetAtCurPrice-this.state.totalInput
+        // set for Asset info display
+        this.assetInfo = {
+            "token0Str":this.state.token0Str,
+            "token1Str":this.state.token1Str,
+            "curAsset":this.state.token0Str + " & " + this.state.token1Str,
+            "poolValue":usdPreFix+Number(this.num.curAssetAtCurPrice).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "initAssetAtInitPrice":usdPreFix+Number(this.num.initAssetAtInitPrice).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "curAssetAtCurPrice":usdPreFix+Number(this.num.curAssetAtCurPrice).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "initAssetAtCurPrice":usdPreFix+Number(this.num.initAssetAtCurPrice).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "marketGain":usdPreFix+Number(this.num.marketGain).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}), // to do here 
+            "initAmount0":Number(this.num.initAmount0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "initAmount1":Number(this.num.initAmount1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "curAmount0":Number(this.num.curAmount0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "curAmount1":Number(this.num.curAmount1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "amountVar0":Number((((this.num.curAmount0-this.num.initAmount0)/this.num.initAmount0)*100)).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+percentPostFix,
+            "amountVar1":Number((((this.num.curAmount1-this.num.initAmount1)/this.num.initAmount1)*100)).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+percentPostFix,
+            "initPrice0":Number(this.state.hisPriceUsd0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "initPrice1":Number(this.state.hisPriceUsd1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "curPrice0":Number(this.state.curPriceUsd0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "curPrice1":Number(this.state.curPriceUsd1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "priceVar0":Number((((this.state.curPriceUsd0-this.state.hisPriceUsd0)/this.state.hisPriceUsd0)*100)).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+percentPostFix,
+            "priceVar1":Number((((this.state.curPriceUsd1-this.state.hisPriceUsd1)/this.state.hisPriceUsd1)*100)).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+percentPostFix,
+        }
+        // set for event Info display
+        this.eventInfo = {}
+        // calculate impermanent loss
+        if (this.num.curAssetAtCurPrice===0){
+            this.lastAsset={
+                "tkn0":this.state.totalInputToken0+this.state.lastDecreaseToken0,
+                "tkn1":this.state.totalInputToken1+this.state.lastDecreaseToken1,
+            }
+            this.finalAsset={
+                "tkn0":this.state.lastDecreaseToken0,
+                "tkn1":this.state.lastDecreaseToken1,
+            }
+            this.finalPrice={
+                "tkn0":this.state.lastDecreasePrice0,
+                "tkn1":this.state.lastDecreasePrice1,
+            }
+        }
+        else{
+            this.lastAsset={
+                "tkn0":this.state.totalInputToken0,
+                "tkn1":this.state.totalInputToken1,
+            }
+            this.finalAsset={
+                "tkn0":Number(this.state.currentAmount0),
+                "tkn1":Number(this.state.currentAmount1),
+            }
+            this.finalPrice={
+                "tkn0":this.state.curPriceUsd0,
+                "tkn1":this.state.curPriceUsd1,
+            }
+        }
+        
+        this.assetInfo.IL = calIL(this.lastAsset,this.finalAsset,this.finalPrice)
+        console.log(this.assetInfo.IL)
+    }
+
+    changeHandler = async(e)=>{
+        await this.setState((prevstate)=>({
+            heldintkn:!prevstate.heldintkn,
+        }))
+        console.log(this.state.heldintkn)
+    }
+
     setLoading = (_load) => {
-        //this.setState((prevstate) => ({
-        //    loading: _load
-        //}))
         this.setState({
             loading: _load
         })
@@ -250,76 +355,62 @@ export default class GrabData extends Component {
                 <Loading/>
             )
         }
-        let currentAsset = this.state.token0Str + " & " + this.state.token1Str
-        let poolValue = ((parseFloat(this.state.currentAmount0)*this.state.curPriceUsd0)+(parseFloat(this.state.currentAmount1)*this.state.curPriceUsd1)).toFixed(4)
-        let initAssetAtInitPrice = ((parseFloat(this.state.initAmount0)*this.state.hisPriceUsd0)+(parseFloat(this.state.initAmount1)*this.state.hisPriceUsd1)).toFixed(4)
-        let initAssetAtCurPrice = ((parseFloat(this.state.initAmount0)*this.state.curPriceUsd0)+(parseFloat(this.state.initAmount1)*this.state.curPriceUsd1)).toFixed(4)
-        let curAssetAtCurPrice = ((parseFloat(this.state.currentAmount0)*this.state.curPriceUsd0)+(parseFloat(this.state.currentAmount1)*this.state.curPriceUsd1)).toFixed(4)
-        let netgain_percentage = (((curAssetAtCurPrice-this.state.totalInput)/this.state.totalInput)*100).toFixed(4)+" %"
-        let netgain = (curAssetAtCurPrice-this.state.totalInput).toFixed(4)
-        let initCurrentAmount0 = Number(parseFloat(this.state.initAmount0).toFixed(4)).toLocaleString()+" / "+ Number(parseFloat(this.state.currentAmount0).toFixed(4)).toLocaleString()
-        let initCurrentAmount1 = Number(parseFloat(this.state.initAmount1).toFixed(4)).toLocaleString()+" / "+ Number(parseFloat(this.state.currentAmount1).toFixed(4)).toLocaleString()
-        let initCurrentPrice0 = Number(parseFloat(this.state.hisPriceUsd0).toFixed(4)).toLocaleString()+" / "+ Number(parseFloat(this.state.curPriceUsd0).toFixed(4)).toLocaleString()
-        let initCurrentPrice1 = Number(parseFloat(this.state.hisPriceUsd1).toFixed(4)).toLocaleString()+" / "+ Number(parseFloat(this.state.curPriceUsd1).toFixed(4)).toLocaleString()
-        let amountVar0 = Number((((parseFloat(this.state.currentAmount0)-parseFloat(this.state.initAmount0))*100/parseFloat(this.state.initAmount0))).toFixed(4)).toLocaleString()+" %"
-        let amountVar1 = Number((((parseFloat(this.state.currentAmount1)-parseFloat(this.state.initAmount1))*100/parseFloat(this.state.initAmount1))).toFixed(4)).toLocaleString()+" %"
-        let priceVar0 = (((parseFloat(this.state.curPriceUsd0)-parseFloat(this.state.hisPriceUsd0))*100/parseFloat(this.state.hisPriceUsd0))).toFixed(2)+" %"
-        let priceVar1 = (((parseFloat(this.state.curPriceUsd1)-parseFloat(this.state.hisPriceUsd1))*100/parseFloat(this.state.hisPriceUsd1))).toFixed(2)+" %"
-        let displayIL = (poolValue ==0)? false:true
-        let impermanentLost = (curAssetAtCurPrice - (Number(this.state.totalInputToken0)*this.state.curPriceUsd0+Number(this.state.totalInputToken1)*this.state.curPriceUsd1))
-        let ilvalue= (displayIL)? "$ "+Number(Number(impermanentLost).toFixed(4)).toLocaleString():"-"
+        let displayIL = (this.num.curAssetAtCurPrice === 0 )? false:true
+        let impermanentLost = (this.num.curAssetAtCurPrice - (Number(this.state.totalInputToken0)*this.state.curPriceUsd0+Number(this.state.totalInputToken1)*this.state.curPriceUsd1))
+        let ilvalue= (displayIL)? "$ "+Number(impermanentLost).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}):"-"
+        this.investedLiquidityHelp = (this.state.heldintkn)? "invested value calculated in Token":"invested value calculated in USD (price @ adding liquidity moments)"
+        this.removedLiquidityHelp = (this.state.heldintkn)? "removed value calculated in Token":"removed value calculated in USD (price @ removing liquidity moments)"
+        this.marketGainHelp = (this.state.heldintkn)? "market gain with removed value calculated in Token":"market gain with removed value calculated in USD (price @ removing liquidity moments)"
+        let investedLiquidityInTkn = `${this.state.totalIncreaseToken0.toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})} ${this.assetInfo.token0Str} \n\n ${this.state.totalIncreaseToken1.toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})} ${this.assetInfo.token1Str}`
+        this.investedLiquidityValue = (this.state.heldintkn)? investedLiquidityInTkn: "$ "+this.state.totalIncrease.toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})
+        let removedLiquidityInTkn = Number(this.state.totalDecreaseToken0.toFixed(4)).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+" "+this.assetInfo.token0Str+"\n\n"+`${this.state.totalDecreaseToken1.toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})}${this.assetInfo.token1Str}`
+        this.removedLiquidityValue = (this.state.heldintkn)? removedLiquidityInTkn: "$ "+this.state.totalDecrease.toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})
+        this.marketGainInTkn = "$ "+(this.num.curAssetAtCurPrice-(this.state.totalInputToken0*this.state.curPriceUsd0+this.state.totalInputToken1*this.state.curPriceUsd1)).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})
+        this.marketGain = (this.state.heldintkn)? "\n"+this.marketGainInTkn:this.assetInfo.marketGain
+        this.assetInfo.marketGainInTkn = this.marketGainInTkn
         return (
             <div id="data_container">
+                <div id="toggle_container">
+                    <div id="left_text"></div>
+                        <Toggle changed={this.state.heldintkn} changeHandler={this.changeHandler}/>
+                    <div id="right_text">Held in Token</div>
+                </div>
                 <div id="black_card_container">
                     <BlackCard
                         title="Current Asset"
-                        value={currentAsset} />
+                        value={this.assetInfo.curAsset} 
+                        />
                     <BlackCard
                         title="Current Pool Value (USD)"
-                        value={"$ "+Number(poolValue).toLocaleString()} />
-                    <BlackCard
-                        title="Your Overall Investment"
-                        value={"$ "+Number(this.state.totalInput).toLocaleString()} />
-                    <BlackCard
-                        title={"Impermanent Lost"}
-                        value={ilvalue} />
-                    <BlackCard
-                        title="Net Market Gain (w/o fee)"
-                        value={"$ "+Number(netgain).toLocaleString()} />
+                        value={this.assetInfo.poolValue} />
                     <BlackCard
                         title="Fee Collected"
-                        value={"$ "+Number(Number(this.state.totalCollected.toFixed(4))).toLocaleString()} />    
+                        value={"$ "+this.state.totalCollected.toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})} />
+                    <BlackCard
+                        title="Invested Liquidity"
+                        value={this.investedLiquidityValue} 
+                        help={this.investedLiquidityHelp}/>
+                    <BlackCard
+                        title="Removed Liquidity"
+                        value={this.removedLiquidityValue}  //toodo
+                        help={this.investedLiquidityHelp}/>
+                    {/*<BlackCard
+                        title={"Impermanent Loss"}
+                        value={ilvalue} 
+                    help="the Impermanent Loss you experienced in the investment"/>*/}
+                    <BlackCard
+                        title="Net Market Gain (w/o fee)"
+                        value={this.marketGain}  //toodo
+                        help={this.marketGainHelp}/>    
                     {/*<BlackCard
                         title={this.state.token0Str+" / "+this.state.token1Str+" price variation"}
                     value={priceVar0+" / "+priceVar1} />*/}
                 </div>
                 <AssetInfoCard
-                    title = "LP Gain / Asset Info (USD)"
-                    r0c0="initial asset @ initial price"
-                    r0c1={"$ "+Number(initAssetAtInitPrice).toLocaleString()}
-                    r1c0="initial assets @ current price"
-                    r1c1={"$ "+Number(initAssetAtCurPrice).toLocaleString()}
-                    r2c0="current asset @ current price"
-                    r2c1={"$ "+Number(curAssetAtCurPrice).toLocaleString()}
-                    r3c0="Gain from market price"
-                    r3c1={"$ "+Number(netgain).toLocaleString()+" ("+netgain_percentage+")"}
-                    r0c0_2="token"
-                    r0c1_2="initial / current amount"
-                    r0c2_2="amount variation"
-                    r0c3_2="initial / current price"
-                    r0c4_2="price variation"
-                    r1c0_2={this.state.token0Str}
-                    r1c1_2={initCurrentAmount0}
-                    r1c2_2={amountVar0}
-                    r1c3_2={"$ "+initCurrentPrice0}
-                    r1c4_2={priceVar0}
-                    r2c0_2={this.state.token1Str}
-                    r2c1_2={initCurrentAmount1}
-                    r2c2_2={amountVar1}
-                    r2c3_2={"$ "+initCurrentPrice1}
-                    r2c4_2={priceVar1}
+                    title = "Asset Info (USD)"
+                    content = {this.assetInfo}
                 />
-                <EventInfoCard title="Gain and Impermanent Lost" state={this.state}
+                <EventInfoCard title="Gain and Impermanent Loss" state={this.state} assetInfo={this.assetInfo}
                 />
 
             </div>

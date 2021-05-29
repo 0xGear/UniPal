@@ -12,7 +12,25 @@ export default class App extends Component {
       search:false,
     }
     this.onSearchClick = this.onSearchClick.bind(this)
+    this.onSearchEnter = this.onSearchEnter.bind(this)
     this.handleChange = this.handleChange.bind(this)
+  }
+
+  onSearchEnter=async(e)=>{
+    //check valid toked id
+    console.log("enter clicked")
+    if(e.key === "Enter"){
+      
+      if(this.checkTokenValid(this.state.value)){
+        // find events
+        //this.setState({search:true})
+        // set refresh
+        this.setState({
+          tokenId:this.state.value,
+        })
+      }
+    }
+    
   }
 
   onSearchClick=async()=>{
@@ -50,7 +68,8 @@ export default class App extends Component {
           <NavBar/>
           <HeaderAndSearch 
             handlechange={this.handleChange}
-            onsearchclick={this.onSearchClick} 
+            onsearchclick={this.onSearchClick}
+            onsearchenter={this.onSearchEnter} 
             state={this.state}
           />
           <GrabData state={this.state}/>
@@ -64,6 +83,7 @@ export default class App extends Component {
           <HeaderAndSearch 
             handlechange={this.handleChange}
             onsearchclick={this.onSearchClick} 
+            onsearchenter={this.onSearchEnter}
             state={this.state}
           />
         </div>

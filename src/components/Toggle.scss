@@ -1,0 +1,63 @@
+@import "../App.scss";
+.switch {
+    position: relative;
+    display: inline-block;
+    justify-items: center;
+    width: 50px;
+    height: 28px;
+  }
+  .switch input { 
+    position: absolute;
+    opacity: 0;
+    width: 50px;
+    height: 28px;
+    z-index: 1;
+  }
+  .slider {
+    z-index: 0;
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  input:checked + .slider {
+    background-color: var(--primary-pink);
+  }
+  
+  input:focus + .slider {
+    box-shadow: 0 0 1px var(--primary-pink);
+  }
+  
+  input:checked + .slider:before {
+    -webkit-transform: translateX(22px);
+    -ms-transform: translateX(22px);
+    transform: translateX(22px);
+  }
+  
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 28px;
+  }
+  
+  .slider.round:before {
+    border-radius: 50%;
+  }

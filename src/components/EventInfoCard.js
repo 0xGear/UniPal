@@ -13,29 +13,41 @@ export default class EventInfoCard extends Component {
         this.netgain = (curAssetAtCurPrice-this.tkninfo.totalInput).toFixed(4)
         this.displayil = (Number(this.tkninfo.currentAmount0)+Number(this.tkninfo.currentAmount1)==0)? false:true
         this.il = (curAssetAtCurPrice - (Number(this.tkninfo.totalInputToken0)*this.tkninfo.curPriceUsd0+Number(this.tkninfo.totalInputToken1)*this.tkninfo.curPriceUsd1))
+        this.extracted = (Number(this.tkninfo.currentAmount0)+Number(this.tkninfo.currentAmount1) === 0)? true:false 
+        this.finalAmount0 = (this.extracted)? this.tkninfo.lastDecreaseToken0 : Number(this.tkninfo.currentAmount0)
+        this.finalAmount1 = (this.extracted)? this.tkninfo.lastDecreaseToken1 : Number(this.tkninfo.currentAmount1)
+        this.totalInput0 = (this.extracted)? this.tkninfo.totalInputToken0+this.tkninfo.lastDecreaseToken0 :this.tkninfo.totalInputToken0
+        this.totalInput1 = (this.extracted)? this.tkninfo.totalInputToken1+this.tkninfo.lastDecreaseToken1 :this.tkninfo.totalInputToken1
         console.log(props)
     }
 
     render() {
+        let prefix = (this.extracted)? "Final ":"Current "
         if (this.eventlists) {
             return (
                 <div className="eventinfocard">
                     <div id="table_title">{this.props.title}</div>
                     <div id="list">
-                        
-                        <List title="Gain from Market Price" content={"$ "+Number(Number(this.netgain).toFixed(4)).toLocaleString()+" ("+this.netgain_percentage+") "}/>  
                         {
-                            (this.displayil) && <List title={"Impermanent lost"} content={"$ "+Number(Number(this.il).toFixed(4)).toLocaleString()}/>
+                            (this.extracted)&&
+                            <div id="extractalert">
+                                You've extracted all your liquidity, all calculation will base on the final extracted value
+                            </div>
                         }
-                        <List title="Overall Investment" content={"$ "+Number(Number(this.tkninfo.totalInput).toFixed(4)).toLocaleString()}/>
+                        
+                        
+                        <List title="Gain from Market Price (sold immediately)" content={this.props.assetInfo.marketGain}/>  
+                        <List title="Gain from Market Price (held in token)" content={this.props.assetInfo.marketGainInTkn}/>  
+                        {/*
+                            (this.displayil) && <List title={"Impermanent losts"} content={"$ "+Number(this.il).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})}/>
+                        */}
+                        <List title={"Impermanent loss"} content={this.props.assetInfo.IL}/>
+                        <List title="Overall Investment" content={"$ "+Number(this.tkninfo.totalInput).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})}/>
                         {
-                            (this.displayil) &&
+                            (this.extracted) &&
                                 <div>
-                                    <List title={"Invested "+this.tkninfo.token0Str} content={Number(Number(this.tkninfo.totalInputToken0).toFixed(4)).toLocaleString()+" "+this.tkninfo.token0Str}/>
-                                    <List title={"Current "+this.tkninfo.token0Str} content={Number(Number(this.tkninfo.currentAmount0).toFixed(4)).toLocaleString()+" "+this.tkninfo.token0Str}/>
-                                    <List title={"Invested "+this.tkninfo.token1Str} content={Number(Number(this.tkninfo.totalInputToken1).toFixed(4)).toLocaleString()+" "+this.tkninfo.token1Str}/>
-                                    <List title={"Current "+this.tkninfo.token1Str} content={Number(Number(this.tkninfo.currentAmount1).toFixed(4)).toLocaleString()+" "+this.tkninfo.token1Str}/>
-                                    
+                                    <List title={"Invested "+" / "+prefix+this.tkninfo.token0Str} content={Number(this.totalInput0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+" / "+Number(this.finalAmount0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+" "+this.tkninfo.token0Str}/>
+                                    <List title={"Invested "+" / "+prefix+this.tkninfo.token1Str} content={Number(this.totalInput1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+" / "+Number(this.finalAmount1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+" "+this.tkninfo.token1Str}/>
                                 </div>
                         }
                     </div>
@@ -53,8 +65,8 @@ export default class EventInfoCard extends Component {
                                     className="" 
                                     time={_date} 
                                     event={item.event}
-                                    asset={shortprefix+" {"+this.tkninfo.token0Str+" "+Number(item.amount0).toFixed(4)+","+this.tkninfo.token1Str+" "+Number(item.amount1).toFixed(4)+"}"}
-                                    value={prefix + "   $ " + Number(item.investment).toLocaleString()} hash={item.transactionHash} />
+                                    asset={shortprefix+" {"+this.tkninfo.token0Str+" "+Number(item.amount0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+","+this.tkninfo.token1Str+" "+Number(item.amount1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+"}"}
+                                    value={prefix + "   $ " + Number(item.investment).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})} hash={item.transactionHash} />
                                 )
                             })
                         }
@@ -65,9 +77,7 @@ export default class EventInfoCard extends Component {
                     </div>
                     
                     <div id="text">
-                        <p>* overall investment = SUM(invest value of each event)</p>
-                        <p>* Gain from market price = (current asset @ current price) - (overall investment)</p>
-                        <p>* IL calcualtion may not apply if you've extracted all liquidity for now (still working on it)</p>
+                        <p>* overall investment = SUM(invest/decrease value of each event)</p>
                         <p>* IL = (current asset @ current price) - (invested asset @ current price)</p>
                     </div>
                 </div>
@@ -103,7 +113,7 @@ export class List extends Component{
         return(
             <div className="list">
                 <div className="list-title">{this.props.title}</div>
-                <div className="list-content">{this.props.content}</div>
+                <div className="list-content alignright">{this.props.content}</div>
             </div>
         )
     }
