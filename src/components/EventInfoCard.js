@@ -8,7 +8,7 @@ export default class EventInfoCard extends Component {
         this.props = props
         this.tkninfo = props.state
         this.eventlists = props.state.eventLog
-        let curAssetAtCurPrice = ((parseFloat(this.tkninfo.currentAmount0)*this.tkninfo.curPriceUsd0)+(parseFloat(this.tkninfo.currentAmount1)*this.tkninfo.curPriceUsd1)).toFixed(4)
+        let curAssetAtCurPrice = (parseFloat(this.tkninfo.currentAmount0)*this.tkninfo.curPriceUsd0)+(parseFloat(this.tkninfo.currentAmount1)*this.tkninfo.curPriceUsd1)
         this.netgain_percentage = (((curAssetAtCurPrice-this.tkninfo.totalInput)/this.tkninfo.totalInput)*100).toFixed(4)+" %"
         this.netgain = (curAssetAtCurPrice-this.tkninfo.totalInput).toFixed(4)
         this.displayil = (Number(this.tkninfo.currentAmount0)+Number(this.tkninfo.currentAmount1)==0)? false:true
@@ -18,6 +18,8 @@ export default class EventInfoCard extends Component {
         this.finalAmount1 = (this.extracted)? this.tkninfo.lastDecreaseToken1 : Number(this.tkninfo.currentAmount1)
         this.totalInput0 = (this.extracted)? this.tkninfo.totalInputToken0+this.tkninfo.lastDecreaseToken0 :this.tkninfo.totalInputToken0
         this.totalInput1 = (this.extracted)? this.tkninfo.totalInputToken1+this.tkninfo.lastDecreaseToken1 :this.tkninfo.totalInputToken1
+        this.totalInputUSD = (this.extracted)? this.tkninfo.totalInput+this.tkninfo.lastDecrease : this.tkninfo.totalInput
+        this.finalAmountUSD = (this.extracted)? this.tkninfo.lastDecrease: curAssetAtCurPrice
         console.log(props)
     }
 
@@ -36,20 +38,15 @@ export default class EventInfoCard extends Component {
                         }
                         
                         
-                        <List title="Gain from Market Price (sold immediately)" content={this.props.assetInfo.marketGain}/>  
-                        <List title="Gain from Market Price (held in token)" content={this.props.assetInfo.marketGainInTkn}/>  
+                        <List title="Gain from Market Price (held in USD)" content={this.props.assetInfo.marketGain} help="all invested/removed tokens accumulated in USD price @ the exact operation moment"/>  
+                        <List title="Gain from Market Price (held in token)" content={this.props.assetInfo.marketGainInTkn} help="all invested/removed tokens calculate with USD @ current price"/>  
                         {/*
                             (this.displayil) && <List title={"Impermanent losts"} content={"$ "+Number(this.il).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})}/>
                         */}
                         <List title={"Impermanent loss"} content={this.props.assetInfo.IL}/>
-                        <List title="Overall Investment" content={"$ "+Number(this.tkninfo.totalInput).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})}/>
-                        {
-                            (this.extracted) &&
-                                <div>
-                                    <List title={"Invested "+" / "+prefix+this.tkninfo.token0Str} content={Number(this.totalInput0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+" / "+Number(this.finalAmount0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+" "+this.tkninfo.token0Str}/>
-                                    <List title={"Invested "+" / "+prefix+this.tkninfo.token1Str} content={Number(this.totalInput1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+" / "+Number(this.finalAmount1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+" "+this.tkninfo.token1Str}/>
-                                </div>
-                        }
+                        <List title={"Overall Invested "+" / "+prefix+" Assets in USD Value"} content={"$ "+Number(this.totalInputUSD).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+" / "+Number(this.finalAmountUSD).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})}/>
+                        <List title={"Invested "+" / "+prefix+this.tkninfo.token0Str} content={Number(this.totalInput0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+" / "+Number(this.finalAmount0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+" "+this.tkninfo.token0Str}/>
+                        <List title={"Invested "+" / "+prefix+this.tkninfo.token1Str} content={Number(this.totalInput1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+" / "+Number(this.finalAmount1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+" "+this.tkninfo.token1Str}/>
                     </div>
                     
                     <div id="table">
@@ -70,6 +67,9 @@ export default class EventInfoCard extends Component {
                                 )
                             })
                         }
+                        <EventRow time="overall" event="-" 
+                            asset={" {"+this.tkninfo.token0Str+" "+Number(this.tkninfo.totalInputToken0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+","+this.tkninfo.token1Str+" "+Number(this.tkninfo.totalInputToken1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+"}"}
+                            value={"$ "+this.tkninfo.totalInput.toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})}/>
                     </div>
                     
                     <div id="sizealert">
@@ -77,7 +77,6 @@ export default class EventInfoCard extends Component {
                     </div>
                     
                     <div id="text">
-                        <p>* overall investment = SUM(invest/decrease value of each event)</p>
                         <p>* IL = (current asset @ current price) - (invested asset @ current price)</p>
                     </div>
                 </div>
@@ -112,7 +111,12 @@ export class List extends Component{
     render(){
         return(
             <div className="list">
-                <div className="list-title">{this.props.title}</div>
+                <div className="list-title">{this.props.title}
+                {
+                    (this.props.help) &&
+                    <div className="tooltip">{this.props.help}</div>
+                }
+                </div>
                 <div className="list-content alignright">{this.props.content}</div>
             </div>
         )

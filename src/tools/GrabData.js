@@ -19,7 +19,6 @@ import "../components/GrabData.scss"
 export default class GrabData extends Component {
     constructor(props) {
         super(props)
-        console.log("props", props)
         this.state = {
             loading: true,
             heldintkn:false,
@@ -114,6 +113,10 @@ export default class GrabData extends Component {
                     curPriceEth0: data['market_data']['current_price']['eth']
                 })
             })
+            .catch(()=>{
+                alert('unable to find current price value from coingeko')
+                window.location.reload(false)
+            })
         const fetchCoin1 = await fetch(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${this.state.token1}`)
             .then((response) => response.json())
             .then((data) => {
@@ -123,13 +126,16 @@ export default class GrabData extends Component {
                     curPriceEth1: data['market_data']['current_price']['eth']
                 })
             })
+            .catch(()=>{
+                alert('unable to find current price value from coingeko')
+                window.location.reload(false)
+            })
     }
 
     getHisCost= async(tokenId,posContract,web3,UNI_TOKEN0,UNI_TOKEN1)=>{
         let[increaseLPEvent,decreaseLPEvent,collectEvent] = await getEventInfo(tokenId,posContract)
         let inDeEvents=[]
         this.eventLog = []
-        console.log(collectEvent)
         inDeEvents = inDeEvents.concat(increaseLPEvent,decreaseLPEvent)
         let costs = await Promise.all(inDeEvents.map(async (e) => {
             let block = await web3.eth.getBlock(e.blockNumber)
@@ -144,8 +150,6 @@ export default class GrabData extends Component {
             let timestamp = block.timestamp
             e.timestamp = timestamp
 	        let [_singleCost,_eventLog] = await getSingleHisCost(tokenId,this.state,e,web3,posContract,UNI_TOKEN0,UNI_TOKEN1)
-            //this.eventLog.push(_eventLog)
-            console.log("single cost",_singleCost)
             return _singleCost
         }))
         let totalInput = 0
@@ -160,6 +164,7 @@ export default class GrabData extends Component {
         let totalIncrease = 0
         let totalIncreaseToken0 = 0
         let totalIncreaseToken1 = 0
+        let lastDecrease = 0
         let lastDecreaseToken0 = 0
         let lastDecreaseToken1 = 0
         let lastDecreasePrice0 = 0
@@ -169,6 +174,7 @@ export default class GrabData extends Component {
                 totalDecrease = totalDecrease+Number(c.usd)
                 totalDecreaseToken0 = totalDecreaseToken0+Number(c.token0)
                 totalDecreaseToken1 = totalDecreaseToken1+Number(c.token1)
+                lastDecrease = Math.abs(c.usd)
                 lastDecreaseToken0 = Math.abs(c.token0)
                 lastDecreaseToken1 = Math.abs(c.token1)
                 lastDecreasePrice0 = Math.abs(c.price0)
@@ -206,6 +212,7 @@ export default class GrabData extends Component {
             "totalIncrease":Math.abs(totalIncrease),
             "totalIncreaseToken0":Math.abs(totalIncreaseToken0),
             "totalIncreaseToken1":Math.abs(totalIncreaseToken1),
+            "lastDecrease":lastDecrease,
             "lastDecreaseToken0":lastDecreaseToken0,
             "lastDecreaseToken1":lastDecreaseToken1,
             "lastDecreasePrice0":lastDecreasePrice0,
@@ -320,14 +327,12 @@ export default class GrabData extends Component {
         }
         
         this.assetInfo.IL = calIL(this.lastAsset,this.finalAsset,this.finalPrice)
-        console.log(this.assetInfo.IL)
     }
 
     changeHandler = async(e)=>{
         await this.setState((prevstate)=>({
             heldintkn:!prevstate.heldintkn,
         }))
-        console.log(this.state.heldintkn)
     }
 
     setLoading = (_load) => {
@@ -345,6 +350,9 @@ export default class GrabData extends Component {
         if (this.props.state.tokenId !== prevProps.state.tokenId) {
             this.setLoading(true)
             this.getData(this.props.state.tokenId)
+            this.setState({
+                heldintkn:false,
+            })
         }
     }
 

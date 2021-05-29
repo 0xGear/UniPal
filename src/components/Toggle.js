@@ -5,7 +5,6 @@ import "./Toggle.scss"
 export default class Toggle extends Component{
     constructor(props){
         super(props)
-        console.log(this.props)
     }
 
     render(){

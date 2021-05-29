@@ -87,6 +87,28 @@
     }
 }
 
+.list .list-title .tooltip{
+    opacity:0.8;
+    width: 15em;
+    visibility:hidden;
+    background-color: black;
+    color: white;
+    font-size: .8em;
+    font-weight: 400;
+    text-align: center;
+    padding: 5px 5px;
+    border-radius: 10px;
+    position: absolute;
+    //left:25%;
+    //bottom:100%;
+    z-index: 1;
+}
+.list .list-title:hover .tooltip{
+    visibility: visible;
+}
+
+
+
 @media only screen and (min-width:762px){
     .row{
     margin-top:.5em;

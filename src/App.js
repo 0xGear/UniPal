@@ -18,13 +18,9 @@ export default class App extends Component {
 
   onSearchEnter=async(e)=>{
     //check valid toked id
-    console.log("enter clicked")
     if(e.key === "Enter"){
       
       if(this.checkTokenValid(this.state.value)){
-        // find events
-        //this.setState({search:true})
-        // set refresh
         this.setState({
           tokenId:this.state.value,
         })
@@ -34,11 +30,7 @@ export default class App extends Component {
   }
 
   onSearchClick=async()=>{
-    //check valid toked id
     if(this.checkTokenValid(this.state.value)){
-      // find events
-      //this.setState({search:true})
-      // set refresh
       this.setState({
         tokenId:this.state.value,
       })
