@@ -9,7 +9,7 @@ export default class Footer extends Component {
     render() {
         return (
             <div id="footer-container">
-                <div id="text">created by 0XGear</div>
+                <div id="text">created by 0xGear</div>
                 <a href="https://github.com/0xGear/UniPal"><img src={githubImg} alt="github" /> </a>
             </div>
         )
