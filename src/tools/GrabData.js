@@ -32,9 +32,8 @@ export default class GrabData extends Component {
         this.uniFactory = new this.web3.eth.Contract(factoryAbi.abi, uniFactoryAddr);
     }
 
+    // get basic info of tokens given NFTID
     getTokenInfo = async(tokenId)=>{
-        // get token address of (token0,token1)
-        // important info in this.tokenInfo (liquidity,token0,token1,tickLower,tickUpper,fee)
         this.tokenInfo = await this.nfpm.methods.positions(parseInt(tokenId))
             .call()
             .catch((e) => {
@@ -79,6 +78,7 @@ export default class GrabData extends Component {
         })
     }
 
+    // get initial info
     getInitInfo = async (tokenId) => {
         let increase = this.nfpm.getPastEvents('IncreaseLiquidity', {
             filter: { tokenId: tokenId },
@@ -103,6 +103,7 @@ export default class GrabData extends Component {
 
     }
 
+    // sending request to coin geko for current info
     getCurCost = async()=>{
         const fetchCoin0 = await fetch(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${this.state.token0}`)
             .then((response) => response.json())
@@ -132,6 +133,8 @@ export default class GrabData extends Component {
             })
     }
 
+
+    // get his price and record amount variation for decreser/increase liquidity, collected fee
     getHisCost= async(tokenId,posContract,web3,UNI_TOKEN0,UNI_TOKEN1)=>{
         let[increaseLPEvent,decreaseLPEvent,collectEvent] = await getEventInfo(tokenId,posContract)
         let inDeEvents=[]
@@ -231,29 +234,16 @@ export default class GrabData extends Component {
             }
         }
         this.setState({
-            hisPriceUsd0:initEvent.hisPriceUsd0,
-            hisPriceUsd1:initEvent.hisPriceUsd1,
-            hisPriceEth0:initEvent.hisPriceEth0,
-            hisPriceEth1:initEvent.hisPriceEth1,
+            "hisPriceUsd0":initEvent.hisPriceUsd0,
+            "hisPriceUsd1":initEvent.hisPriceUsd1,
+            "hisPriceEth0":initEvent.hisPriceEth0,
+            "hisPriceEth1":initEvent.hisPriceEth1,
         })
         // sort eventLog
         this.eventLog.sort((a,b)=>{
             if(a.timestamp > b.timestamp) return 1
             if(a.timestamp < b.timestamp) return -1
         })
-    }
-
-    getData = async (tokenId) => {
-        await this.getTokenInfo(tokenId)
-        //console.log(this.state)
-        await this.getInitInfo(tokenId)
-        //console.log(this.state)
-        await this.getCurCost()
-        await this.getHisCost(tokenId,this.nfpm,this.web3,this.UNI_TOKEN0,this.UNI_TOKEN1)
-        await this.getInitCost()
-        //console.log(this.state)
-        this.getDisplayData()
-        this.setLoading(false)
     }
 
     getDisplayData = () =>{
@@ -271,8 +261,24 @@ export default class GrabData extends Component {
         this.num.curAssetAtCurPrice = (this.num.curAmount0*this.state.curPriceUsd0)+(this.num.curAmount1*this.state.curPriceUsd1)
         this.num.initAssetAtCurPrice=(this.num.initAmount0*this.state.curPriceUsd0)+(this.num.initAmount1*this.state.curPriceUsd1)
         this.num.marketGain=this.num.curAssetAtCurPrice-this.state.totalInput
-        // set for Asset info display
+        this.num.marketGainInTkn=this.num.curAssetAtCurPrice-(this.state.totalInputToken0*this.state.curPriceUsd0+this.state.totalInputToken1*this.state.curPriceUsd1)
+
+        // check if the liquidity is removed 
+        this.extracted = (Number(this.state.currentAmount0)+Number(this.state.currentAmount1) === 0)? true:false 
+
+        // add back or change final amount if liquidity removed
+        this.finalAmount0 = (this.extracted)? this.state.lastDecreaseToken0 : Number(this.state.currentAmount0)
+        this.finalAmount1 = (this.extracted)? this.state.lastDecreaseToken1 : Number(this.state.currentAmount1)
+        this.finalAmountUSD = (this.extracted)? this.state.lastDecrease: this.num.curAssetAtCurPrice
+
+        this.totalInput0 = (this.extracted)? this.state.totalInputToken0+this.state.lastDecreaseToken0 :this.state.totalInputToken0
+        this.totalInput1 = (this.extracted)? this.state.totalInputToken1+this.state.lastDecreaseToken1 :this.state.totalInputToken1
+        this.totalInputUSD = (this.extracted)? this.state.totalInput+this.state.lastDecrease : this.state.totalInput
+        
+        // set for Asset info display 
         this.assetInfo = {
+            // basic info
+            "extracted":this.extracted,
             "token0Str":this.state.token0Str,
             "token1Str":this.state.token1Str,
             "curAsset":this.state.token0Str + " & " + this.state.token1Str,
@@ -280,24 +286,44 @@ export default class GrabData extends Component {
             "initAssetAtInitPrice":usdPreFix+Number(this.num.initAssetAtInitPrice).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
             "curAssetAtCurPrice":usdPreFix+Number(this.num.curAssetAtCurPrice).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
             "initAssetAtCurPrice":usdPreFix+Number(this.num.initAssetAtCurPrice).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
-            "marketGain":usdPreFix+Number(this.num.marketGain).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}), // to do here 
+            "marketGain":usdPreFix+Number(this.num.marketGain).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}), 
+            "marketGainInTkn":usdPreFix+Number(this.num.marketGainInTkn).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            //initial info
             "initAmount0":Number(this.num.initAmount0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
             "initAmount1":Number(this.num.initAmount1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
-            "curAmount0":Number(this.num.curAmount0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
-            "curAmount1":Number(this.num.curAmount1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
-            "amountVar0":Number((((this.num.curAmount0-this.num.initAmount0)/this.num.initAmount0)*100)).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+percentPostFix,
-            "amountVar1":Number((((this.num.curAmount1-this.num.initAmount1)/this.num.initAmount1)*100)).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+percentPostFix,
             "initPrice0":Number(this.state.hisPriceUsd0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
             "initPrice1":Number(this.state.hisPriceUsd1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            //current info
+            "curAmount0":Number(this.num.curAmount0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "curAmount1":Number(this.num.curAmount1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
             "curPrice0":Number(this.state.curPriceUsd0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
             "curPrice1":Number(this.state.curPriceUsd1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            //final info (if extracted, final info will replace current info instead)
+            "finalAmountUSD":Number(this.finalAmountUSD).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "finalAmount0":Number(this.finalAmount0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "finalAmount1":Number(this.finalAmount1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            //variation
+            "amountVar0":Number((((this.num.curAmount0-this.num.initAmount0)/this.num.initAmount0)*100)).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+percentPostFix,
+            "amountVar1":Number((((this.num.curAmount1-this.num.initAmount1)/this.num.initAmount1)*100)).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+percentPostFix,
             "priceVar0":Number((((this.state.curPriceUsd0-this.state.hisPriceUsd0)/this.state.hisPriceUsd0)*100)).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+percentPostFix,
             "priceVar1":Number((((this.state.curPriceUsd1-this.state.hisPriceUsd1)/this.state.hisPriceUsd1)*100)).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+percentPostFix,
+            //total input info (re-add final removed amount if extracted)
+            "totalInput0":Number(this.totalInput0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "totalInput1":Number(this.totalInput1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "totalInputUSD":Number(this.totalInputUSD).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            //overall input info (won't add back if extracted)
+            "overAllInput0":Number(this.state.totalInputToken0).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "overAllInput1":Number(this.state.totalInputToken1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            "overAllInputUSD":Number(this.state.totalInput).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
+            //event list
+            "eventList":this.state.eventLog,
+            //collected fee
+            "totalCollected":usdPreFix+this.state.totalCollected.toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}),
         }
-        // set for event Info display
-        this.eventInfo = {}
+
+
         // calculate impermanent loss
-        if (this.num.curAssetAtCurPrice===0){
+        if (this.extracted){
             this.lastAsset={
                 "tkn0":this.state.totalInputToken0+this.state.lastDecreaseToken0,
                 "tkn1":this.state.totalInputToken1+this.state.lastDecreaseToken1,
@@ -317,8 +343,8 @@ export default class GrabData extends Component {
                 "tkn1":this.state.totalInputToken1,
             }
             this.finalAsset={
-                "tkn0":Number(this.state.currentAmount0),
-                "tkn1":Number(this.state.currentAmount1),
+                "tkn0":this.num.curAmount0,
+                "tkn1":this.num.curAmount1,
             }
             this.finalPrice={
                 "tkn0":this.state.curPriceUsd0,
@@ -327,6 +353,18 @@ export default class GrabData extends Component {
         }
         
         this.assetInfo.IL = calIL(this.lastAsset,this.finalAsset,this.finalPrice)
+    }
+
+
+    // main procedure function
+    getData = async (tokenId) => {
+        await this.getTokenInfo(tokenId)
+        await this.getInitInfo(tokenId)
+        await this.getCurCost()
+        await this.getHisCost(tokenId,this.nfpm,this.web3,this.UNI_TOKEN0,this.UNI_TOKEN1)
+        await this.getInitCost()
+        this.getDisplayData()
+        this.setLoading(false)
     }
 
     changeHandler = async(e)=>{
@@ -363,9 +401,6 @@ export default class GrabData extends Component {
                 <Loading/>
             )
         }
-        let displayIL = (this.num.curAssetAtCurPrice === 0 )? false:true
-        let impermanentLost = (this.num.curAssetAtCurPrice - (Number(this.state.totalInputToken0)*this.state.curPriceUsd0+Number(this.state.totalInputToken1)*this.state.curPriceUsd1))
-        let ilvalue= (displayIL)? "$ "+Number(impermanentLost).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4}):"-"
         this.investedLiquidityHelp = (this.state.heldintkn)? "invested value calculated in Token":"invested value calculated in USD (price @ adding liquidity moments)"
         this.removedLiquidityHelp = (this.state.heldintkn)? "removed value calculated in Token":"removed value calculated in USD (price @ removing liquidity moments)"
         this.marketGainHelp = (this.state.heldintkn)? "market gain with removed value calculated in Token":"market gain with removed value calculated in USD (price @ removing liquidity moments)"
@@ -373,9 +408,7 @@ export default class GrabData extends Component {
         this.investedLiquidityValue = (this.state.heldintkn)? investedLiquidityInTkn: "$ "+this.state.totalIncrease.toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})
         let removedLiquidityInTkn = Number(this.state.totalDecreaseToken0.toFixed(4)).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+" "+this.assetInfo.token0Str+"\n\n"+`${this.state.totalDecreaseToken1.toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})}${this.assetInfo.token1Str}`
         this.removedLiquidityValue = (this.state.heldintkn)? removedLiquidityInTkn: "$ "+this.state.totalDecrease.toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})
-        this.marketGainInTkn = "$ "+(this.num.curAssetAtCurPrice-(this.state.totalInputToken0*this.state.curPriceUsd0+this.state.totalInputToken1*this.state.curPriceUsd1)).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})
-        this.marketGain = (this.state.heldintkn)? "\n"+this.marketGainInTkn:this.assetInfo.marketGain
-        this.assetInfo.marketGainInTkn = this.marketGainInTkn
+        this.marketGain = (this.state.heldintkn)? "\n"+this.assetInfo.marketGainInTkn:this.assetInfo.marketGain
         return (
             <div id="data_container">
                 <div id="toggle_container">
@@ -393,7 +426,7 @@ export default class GrabData extends Component {
                         value={this.assetInfo.poolValue} />
                     <BlackCard
                         title="Fee Collected"
-                        value={"$ "+this.state.totalCollected.toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})} />
+                        value={this.assetInfo.totalCollected} />
                     <BlackCard
                         title="Invested Liquidity"
                         value={this.investedLiquidityValue} 
@@ -418,7 +451,9 @@ export default class GrabData extends Component {
                     title = "Asset Info (USD)"
                     content = {this.assetInfo}
                 />
-                <EventInfoCard title="Gain and Impermanent Loss" state={this.state} assetInfo={this.assetInfo}
+                <EventInfoCard 
+                    title="Gain and Impermanent Loss" 
+                    assetInfo={this.assetInfo}
                 />
 
             </div>

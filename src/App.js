@@ -6,7 +6,6 @@ import GrabData from './tools/GrabData'
 export default class App extends Component {
   constructor(props){
     super(props)
-    //this.data = React.createRef()
     this.state = {
       tokenId:null,
       search:false,
@@ -17,9 +16,7 @@ export default class App extends Component {
   }
 
   onSearchEnter=async(e)=>{
-    //check valid toked id
     if(e.key === "Enter"){
-      
       if(this.checkTokenValid(this.state.value)){
         this.setState({
           tokenId:this.state.value,
@@ -51,17 +48,15 @@ export default class App extends Component {
     return true
   }
 
-  //check valid tkn_id
-
   render(){
     if (this.state.tokenId){
       return (
         <div className="App">
           <NavBar/>
           <HeaderAndSearch 
-            handlechange={this.handleChange}
-            onsearchclick={this.onSearchClick}
-            onsearchenter={this.onSearchEnter} 
+            handleChange={this.handleChange}
+            onSearchClick={this.onSearchClick}
+            onSearchEnter={this.onSearchEnter} 
             state={this.state}
           />
           <GrabData state={this.state}/>
@@ -73,9 +68,9 @@ export default class App extends Component {
         <div className="App">
           <NavBar/>
           <HeaderAndSearch 
-            handlechange={this.handleChange}
-            onsearchclick={this.onSearchClick} 
-            onsearchenter={this.onSearchEnter}
+            handleChange={this.handleChange}
+            onSearchClick={this.onSearchClick} 
+            onSearchEnter={this.onSearchEnter}
             state={this.state}
           />
         </div>

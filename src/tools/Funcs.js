@@ -63,6 +63,7 @@ export async function getSingleHisCost(tokenId,tokenInfo,event,web3,posContract,
 }
 
 
+//lastAsset refers to the asset after the last human operation,(refers to the second-to-last if the last operation is extracting all liquidy)
 export function calIL(lastAsset,finalAsset,finalPrice){
     return "$ "+((finalAsset.tkn0 - lastAsset.tkn0)*finalPrice.tkn0+(finalAsset.tkn1-lastAsset.tkn1)*finalPrice.tkn1).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})
 }

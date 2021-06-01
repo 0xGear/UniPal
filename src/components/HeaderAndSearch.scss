@@ -1,7 +1,7 @@
 @import '../App.scss';
 
 
-#HS_container{
+#headerandsearch-container{
     padding: 1em;
     text-align: center;
     h1{
@@ -24,7 +24,7 @@
         margin: 4em 1em;
         place-content: space-between;
         align-items: center;
-        #tkn_input{
+        #tkn-input{
             width: 75%;
             background-color:#e5e5e5;
             border:none;
@@ -41,7 +41,7 @@
             //border: 2px solid #555 !important;
             box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
         }
-        #search_btn{
+        #search-btn{
             width:30%;
             //background-color: var(--primary-pink);
             background: rgb(200,16,228);
@@ -63,13 +63,13 @@
 }
 
 @media only screen and (min-width:762px){
-    #HS_container{
+    #headerandsearch-container{
         padding: 2em 3em !important;
     }
 } 
 
 @media only screen and (min-width:1024px){
-    #HS_container{
+    #headerandsearch-container{
         padding: 3em 10em !important;
         text-align: left;
         .search-bar{
@@ -80,7 +80,7 @@
             align-items: center;
             align-content: center;
             float: left;
-            #tkn_input{
+            #tkn-input{
                 width: 65%;
                 background-color:#e5e5e5;
                 border:none;
@@ -97,7 +97,7 @@
                 //border: 2px solid #555 !important;
                 box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
             }
-            #search_btn{
+            #search-btn{
                 width:25%;
                 justify-self: start;
                 background-color: var(--primary-pink);
@@ -120,7 +120,7 @@
 
 
 @media only screen and (min-width:1670px){
-    #HS_container{
+    #headerandsearch-container{
         padding: 3em 15em !important;
     }
     
