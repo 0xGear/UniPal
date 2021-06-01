@@ -1,8 +1,10 @@
 import './App.scss';
 import NavBar from './components/NavBar'
 import HeaderAndSearch from './components/HeaderAndSearch'
-import { Component } from 'react';
+import { Component } from 'react'
 import GrabData from './tools/GrabData'
+import Footer from './components/Footer'
+
 export default class App extends Component {
   constructor(props){
     super(props)
@@ -51,7 +53,7 @@ export default class App extends Component {
   render(){
     if (this.state.tokenId){
       return (
-        <div className="App">
+        <div className="app">
           <NavBar/>
           <HeaderAndSearch 
             handleChange={this.handleChange}
@@ -60,12 +62,13 @@ export default class App extends Component {
             state={this.state}
           />
           <GrabData state={this.state}/>
+          <Footer/>
         </div>
       );
     }
     else{
       return (
-        <div className="App">
+        <div className="app">
           <NavBar/>
           <HeaderAndSearch 
             handleChange={this.handleChange}
@@ -73,6 +76,7 @@ export default class App extends Component {
             onSearchEnter={this.onSearchEnter}
             state={this.state}
           />
+          <Footer/>
         </div>
       );
     }

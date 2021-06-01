@@ -1,0 +1,48 @@
+@import "../App.scss";
+
+#footer-container{
+    display: flex;
+    flex-flow: row;
+    justify-content: flex-end;
+    align-items: center;
+    //position:fixed;
+    position:relative;
+    right: 0;
+    top:20%;
+    bottom: 0;
+    width: calc(100% - 2em);
+    padding: 1em;
+    img{
+        margin:.5em;
+        border-radius: 50%;
+    }
+    img:hover{
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    }
+    #text{
+        font-family: var(--text-font);
+        font-size: 12px;
+    }
+}
+
+@media only screen and (min-width:762px){
+    #footer-container{
+        padding: 2em 3em !important;
+        width: calc(100% - 6em) !important;
+        top:10% !important;
+    }
+} 
+
+@media only screen and (min-width:1024px){
+    #footer-container{
+        padding: 3em 10em !important;
+        width: calc(100% - 20em) !important;
+    }
+}
+
+@media only screen and (min-width:1670px){
+    #footer-container{
+        padding: 3em 15em !important;
+        width: calc(100% - 30em) !important;
+    }
+}
