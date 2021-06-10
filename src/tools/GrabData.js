@@ -114,8 +114,9 @@ export default class GrabData extends Component {
                     curPriceEth0: data['market_data']['current_price']['eth']
                 })
             })
-            .catch(()=>{
-                alert('unable to find current price value from coingeko')
+            .catch((error)=>{
+                console.log(error)
+                alert("[coingeko error]"+error)
                 window.location.reload(false)
             })
         const fetchCoin1 = await fetch(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${this.state.token1}`)
@@ -127,8 +128,9 @@ export default class GrabData extends Component {
                     curPriceEth1: data['market_data']['current_price']['eth']
                 })
             })
-            .catch(()=>{
-                alert('unable to find current price value from coingeko')
+            .catch((error)=>{
+                console.log(error)
+                alert("[coingeko error]"+error)
                 window.location.reload(false)
             })
     }
@@ -409,6 +411,7 @@ export default class GrabData extends Component {
         let removedLiquidityInTkn = Number(this.state.totalDecreaseToken0.toFixed(4)).toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})+" "+this.assetInfo.token0Str+"\n\n"+`${this.state.totalDecreaseToken1.toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})}${this.assetInfo.token1Str}`
         this.removedLiquidityValue = (this.state.heldintkn)? removedLiquidityInTkn: "$ "+this.state.totalDecrease.toLocaleString(undefined,{minimumFractionDigits:4,maximumFractionDigits:4})
         this.marketGain = (this.state.heldintkn)? "\n"+this.assetInfo.marketGainInTkn:this.assetInfo.marketGain
+        console.log(this.state)
         return (
             <div id="data_container">
                 <div id="toggle_container">
